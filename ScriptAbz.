@@ -1,8 +1,8 @@
 -- =========================================================
--- 🔥 MASTER HUB V2.6.6 AUTO BY: Abzzait 🔥
+-- 🔥 MASTER HUB V2.6.8 AUTO BY: Abzzait 🔥
 -- Features: KillAll | Fly | TP Pos | Player (Orbit, Under, Camera Control)
 -- Hotkeys: E = KillAll | X = Fly | T = TP Target
--- Upgraded V2.6.6: Thêm Bộ Chỉnh WalkSpeed & JumpPower Ở Tab 1 Vòng Lặp Khóa Stats
+-- Upgraded V2.6.8: Sửa lỗi hiển thị nút Settings & Chuyển Credit thành Tab nội bộ
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -54,12 +54,12 @@ UIS.InputChanged:Connect(function(i)
 end)
 UIS.InputEnded:Connect(function() drag = false end)
 
--- Tiêu đề Hub v2.6.6 AUTO
+-- Tiêu đề Hub v2.6.8 AUTO
 local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -40, 0, 25)
 Title.Position = UDim2.new(0, 10, 0, 5)
-Title.Text = "🔥 ABZZAIT HUB V2.6.6 AUTO"
+Title.Text = "🔥 ABZZAIT HUB V2.6.8 AUTO"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -76,7 +76,7 @@ MinBtn.TextSize = 14
 MinBtn.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 4)
 
--- Vùng chứa các tab tính năng
+-- Vùng chứa các tab tính năng (Gồm cả Tab 6 ẩn danh)
 local ContentContainer = Instance.new("Frame", MainFrame)
 ContentContainer.Size = UDim2.new(0, 190, 0, 315)
 ContentContainer.Position = UDim2.new(0, 10, 0, 35)
@@ -90,7 +90,7 @@ TabBar.BackgroundTransparency = 1
 -- CHỮ HINT ĐỘC LẬP DƯỚI ĐÁY GUI
 local GlobalHelp = Instance.new("TextLabel", MainFrame)
 GlobalHelp.BackgroundTransparency = 1
-GlobalHelp.Size = UDim2.new(0, 240, 0, 24)
+GlobalHelp.Size = UDim2.new(0, 210, 0, 24)
 GlobalHelp.Position = UDim2.new(0, 10, 0, 353)
 GlobalHelp.Text = "Hotkeys: E = KillAll | X = Fly | T = TP Target"
 GlobalHelp.Font = Enum.Font.GothamBold
@@ -100,6 +100,18 @@ GlobalHelp.TextTransparency = 0.7
 GlobalHelp.TextWrapped = true
 GlobalHelp.TextXAlignment = Enum.TextXAlignment.Left
 
+-- 🛠️ [BỔ SUNG THAY ĐỔI V2.6.8] KHỞI TẠO NÚT CÀI ĐẶT KIỂU TRÒN KHÔNG BỊ CHÌM
+local SettingsBtn = Instance.new("ImageButton", MainFrame)
+SettingsBtn.Name = "SettingsBtn"
+SettingsBtn.Size = UDim2.new(0, 20, 0, 20)
+SettingsBtn.Position = UDim2.new(1, -30, 1, -24) -- Nằm hoàn toàn trong vùng hiển thị an toàn
+SettingsBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- Nền tối giúp nhận diện nút kể cả khi lỗi ảnh
+SettingsBtn.BackgroundTransparency = 0
+SettingsBtn.ZIndex = 10 -- Ưu tiên xếp trên cùng bề mặt
+SettingsBtn.Image = "rbxassetid://114314445030269"
+Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(1, 0) -- Tạo hình tròn hoàn chỉnh
+
+-- Đồng bộ ẩn/hiện khi bấm nút thu gọn GUI
 local isMinimized = false
 MinBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -108,23 +120,25 @@ MinBtn.MouseButton1Click:Connect(function()
         ContentContainer.Visible = false
         TabBar.Visible = false
         GlobalHelp.Visible = false
+        SettingsBtn.Visible = false
         MinBtn.Text = "+"
     else
         MainFrame.Size = UDim2.new(0, 260, 0, 380)
         ContentContainer.Visible = true
         TabBar.Visible = true
         GlobalHelp.Visible = true
+        SettingsBtn.Visible = true
         MinBtn.Text = "-"
     end
 end)
 
 -- =========================================================
--- [PART 2: KHỞI TẠO BỘ KHUNG PHÂN KHU (5 TABS)]
+-- [PART 2: KHỞI TẠO BỘ KHUNG PHÂN KHU (MỞ RỘNG 6 TABS)]
 -- =========================================================
 local TabButtons = {}
 local TabFrames = {}
 
-for i = 1, 5 do
+for i = 1, 6 do -- Nâng cấp vòng lặp lên 6 để chứa Tab Cài Đặt
     local tFrame
     if i == 1 or i == 2 or i == 3 then
         tFrame = Instance.new("ScrollingFrame", ContentContainer)
@@ -142,12 +156,18 @@ for i = 1, 5 do
 end
 
 local function SwitchTab(tabIndex)
-    for i = 1, 5 do
-        TabFrames[i].Visible = (i == tabIndex)
+    for i = 1, 6 do
+        if TabFrames[i] then TabFrames[i].Visible = (i == tabIndex) end
         if TabButtons[i] then
             TabButtons[i].BackgroundColor3 = (i == tabIndex) and Color3.fromRGB(55, 55, 55) or Color3.fromRGB(35, 35, 35)
             TabButtons[i].TextColor3 = (i == tabIndex) and Color3.fromRGB(255, 165, 0) or Color3.new(1, 1, 1)
         end
+    end
+    -- Điểm nhấn đổi màu nút Settings khi đang xem trang cài đặt
+    if tabIndex == 6 then
+        SettingsBtn.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    else
+        SettingsBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     end
 end
 
@@ -167,7 +187,11 @@ for i = 1, 5 do
     TabButtons[i] = btn
 end
 
--- Biến toàn cục hệ thống dùng chung
+-- Kết nối nút Settings ở góc đáy để chuyển thẳng sang Tab 6
+SettingsBtn.MouseButton1Click:Connect(function()
+    SwitchTab(6)
+end)
+
 local infZoomActive = false
 local currentFOV = 70
 local SelectedPlayer = nil
@@ -178,7 +202,6 @@ local StartOrbitBtn = Instance.new("TextButton")
 local UnderBtn = Instance.new("TextButton")
 local InfZoomBtn = Instance.new("TextButton")
 
--- Biến điều khiển WalkSpeed và JumpPower mới
 local walkSpeedValue = 16
 local jumpPowerValue = 50
 
@@ -218,9 +241,7 @@ local function ResetAllStates()
     if bV then bV:Destroy() bV = nil end
     if bG then bG:Destroy() bG = nil end
     
-    if antiFlingMode == "Bật" then
-        antiFlingMode = "Tắt"
-    end
+    if antiFlingMode == "Bật" then antiFlingMode = "Tắt" end
 end
 
 local KillAllBtn = Instance.new("TextButton", Khu1)
@@ -303,7 +324,6 @@ AntiFlingToggle.TextSize = 10
 AntiFlingToggle.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", AntiFlingToggle).CornerRadius = UDim.new(0, 4)
 
--- 🌟 [BỔ SUNG] KHUNG ĐIỀU CHỈNH WALKSPEED (TỐC ĐỘ DI CHUYỂN)
 local SpeedFrame = Instance.new("Frame", Khu1)
 SpeedFrame.Size = UDim2.new(1, -6, 0, 28)
 SpeedFrame.Position = UDim2.new(0, 0, 0, 134)
@@ -337,7 +357,6 @@ SpeedPlus.Font = Enum.Font.GothamBold
 SpeedPlus.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", SpeedPlus)
 
--- 🌟 [BỔ SUNG] KHUNG ĐIỀU CHỈNH JUMPPOWER (ĐỘ CAO NHẢY)
 local JumpFrame = Instance.new("Frame", Khu1)
 JumpFrame.Size = UDim2.new(1, -6, 0, 28)
 JumpFrame.Position = UDim2.new(0, 0, 0, 166)
@@ -379,20 +398,12 @@ local function UpdateVisuals()
     
     StartOrbitBtn.Text = isOrbiting and "Orbit: ON 🔥" or "Orbit: OFF"
     StartOrbitBtn.BackgroundColor3 = isOrbiting and Color3.fromRGB(30, 160, 30) or Color3.fromRGB(200, 30, 30)
-    
     UnderBtn.Text = isUnderground and "Under: ON" or "Under: OFF"
     UnderBtn.BackgroundColor3 = isUnderground and Color3.fromRGB(140, 20, 180) or Color3.fromRGB(60, 60, 60)
     
-    if antiFlingMode == "Tắt" then
-        AntiFlingToggle.Text = "Tắt"
-        AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    elseif antiFlingMode == "Bật" then
-        AntiFlingToggle.Text = "Bật"
-        AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
-    elseif antiFlingMode == "Khóa" then
-        AntiFlingToggle.Text = "Khóa 🔒"
-        AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-    end
+    if antiFlingMode == "Tắt" then AntiFlingToggle.Text = "Tắt" AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    elseif antiFlingMode == "Bật" then AntiFlingToggle.Text = "Bật" AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
+    elseif antiFlingMode == "Khóa" then AntiFlingToggle.Text = "Khóa 🔒" AntiFlingToggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30) end
 end
 
 local function GetTargetsIncludingDummies()
@@ -489,73 +500,44 @@ local function TPToSelectedPlayer()
     if not SelectedPlayer or not SelectedPlayer.Character then return end
     local targetHrp = SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
     local myChar = lp.Character
-    if targetHrp and myChar then
-        myChar:PivotTo(targetHrp.CFrame * CFrame.new(0, 3, 0))
-    end
+    if targetHrp and myChar then myChar:PivotTo(targetHrp.CFrame * CFrame.new(0, 3, 0)) end
 end
 
 local function ApplyCameraSettings()
     if infZoomActive then lp.CameraMaxZoomDistance = 999999 else lp.CameraMaxZoomDistance = 400 end
-    local cam = Workspace.CurrentCamera
-    if cam then cam.FieldOfView = currentFOV end
+    local cam = Workspace.CurrentCamera if cam then cam.FieldOfView = currentFOV end
 end
 
--- Sự kiện nhấn nút tăng giảm Tốc độ & Sức nhảy
 SpeedMinus.MouseButton1Click:Connect(function()
-    if walkSpeedValue > 16 then
-        walkSpeedValue = walkSpeedValue - 5
-        if walkSpeedValue < 16 then walkSpeedValue = 16 end
-        SpeedLabel.Text = "WalkSpeed: " .. walkSpeedValue
-    end
+    if walkSpeedValue > 16 then walkSpeedValue = walkSpeedValue - 5 if walkSpeedValue < 16 then walkSpeedValue = 16 end SpeedLabel.Text = "WalkSpeed: " .. walkSpeedValue end
 end)
 SpeedPlus.MouseButton1Click:Connect(function()
-    if walkSpeedValue < 400 then
-        walkSpeedValue = walkSpeedValue + 5
-        SpeedLabel.Text = "WalkSpeed: " .. walkSpeedValue
-    end
+    if walkSpeedValue < 400 then walkSpeedValue = walkSpeedValue + 5 SpeedLabel.Text = "WalkSpeed: " .. walkSpeedValue end
 end)
 
 JumpMinus.MouseButton1Click:Connect(function()
-    if jumpPowerValue > 50 then
-        jumpPowerValue = jumpPowerValue - 10
-        if jumpPowerValue < 50 then jumpPowerValue = 50 end
-        JumpLabel.Text = "JumpPower: " .. jumpPowerValue
-    end
+    if jumpPowerValue > 50 then jumpPowerValue = jumpPowerValue - 10 if jumpPowerValue < 50 then jumpPowerValue = 50 end JumpLabel.Text = "JumpPower: " .. jumpPowerValue end
 end)
 JumpPlus.MouseButton1Click:Connect(function()
-    if jumpPowerValue < 500 then
-        jumpPowerValue = jumpPowerValue + 10
-        JumpLabel.Text = "JumpPower: " .. jumpPowerValue
-    end
+    if jumpPowerValue < 500 then jumpPowerValue = jumpPowerValue + 10 JumpLabel.Text = "JumpPower: " .. jumpPowerValue end
 end)
 
--- VÒNG LẶP ĐỒNG BỘ: CHỐNG FLING + KHÓA CHỈ SỐ STATS TỐC ĐỘ VÀ NHẢY CHỐNG GAME RESET
+-- VÒNG LẶP ĐỒNG BỘ: CHỐNG FLING + KHÓA CHỈ SỐ STATS WALK/JUMP CHỐNG RESET
 RunService.Stepped:Connect(function()
     if antiFlingMode == "Bật" or antiFlingMode == "Khóa" then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= lp and p.Character then
                 for _, v in pairs(p.Character:GetChildren()) do
-                    if v:IsA("BasePart") then
-                        v.CanCollide = false
-                        v.Velocity = Vector3.new(0, 0, 0)
-                        v.RotVelocity = Vector3.new(0, 0, 0)
-                    end
+                    if v:IsA("BasePart") then v.CanCollide = false v.Velocity = Vector3.new(0, 0, 0) v.RotVelocity = Vector3.new(0, 0, 0) end
                 end
             end
         end
     end
     
-    -- Khóa chỉ số WalkSpeed và JumpPower liên tục
-    local char = lp.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local char = lp.Character local hum = char and char:FindFirstChildOfClass("Humanoid")
     if hum then
-        if walkSpeedValue ~= 16 then
-            hum.WalkSpeed = walkSpeedValue
-        end
-        if jumpPowerValue ~= 50 then
-            hum.UseJumpPower = true 
-            hum.JumpPower = jumpPowerValue
-        end
+        if walkSpeedValue ~= 16 then hum.WalkSpeed = walkSpeedValue end
+        if jumpPowerValue ~= 50 then hum.UseJumpPower = true hum.JumpPower = jumpPowerValue end
     end
 end)
 
@@ -578,10 +560,7 @@ end)
 -- [PART 4: KHU VỰC 2 - TÍNH NĂNG "TP Pos"]
 -- =========================================================
 local Khu2 = TabFrames[2]
-
-local savedPositions = {} 
-local tpMode = "Instant"  
-local currentTweenSpeed = 200 
+local savedPositions = {} local tpMode = "Instant" local currentTweenSpeed = 200 
 
 local ModeBtn = Instance.new("TextButton", Khu2)
 ModeBtn.Size = UDim2.new(1, -6, 0, 24)
@@ -600,36 +579,24 @@ ModeBtn.MouseButton1Click:Connect(function()
 end)
 
 local function TeleportToPosition(targetCFrame)
-    local char = lp.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
-    if tpMode == "Instant" then
-        char:PivotTo(targetCFrame)
+    local char = lp.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if not hrp then return end
+    if tpMode == "Instant" then char:PivotTo(targetCFrame)
     else
         local distance = (hrp.Position - targetCFrame.Position).Magnitude
         local duration = math.clamp(distance / currentTweenSpeed, 0.2, 6)
-        
         local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-        
-        local bV_anti = Instance.new("BodyVelocity", hrp)
-        bV_anti.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-        bV_anti.Velocity = Vector3.new(0,0,0)
-        
-        tween:Play()
-        tween.Completed:Connect(function() bV_anti:Destroy() end)
+        local bV_anti = Instance.new("BodyVelocity", hrp) bV_anti.MaxForce = Vector3.new(1e5, 1e5, 1e5) bV_anti.Velocity = Vector3.new(0,0,0)
+        tween:Play() tween.Completed:Connect(function() bV_anti:Destroy() end)
     end
 end
 
 for slot = 1, 5 do
     local yOffset = 32 + (slot - 1) * 56
-    
     local SlotFrame = Instance.new("Frame", Khu2)
     SlotFrame.Size = UDim2.new(1, -6, 0, 50)
     SlotFrame.Position = UDim2.new(0, 0, 0, yOffset)
     SlotFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-    SlotFrame.BorderSizePixel = 0
     Instance.new("UICorner", SlotFrame).CornerRadius = UDim.new(0, 4)
     
     local SlotLabel = Instance.new("TextLabel", SlotFrame)
@@ -663,28 +630,19 @@ for slot = 1, 5 do
     Instance.new("UICorner", TPBtn).CornerRadius = UDim.new(0, 4)
     
     SaveBtn.MouseButton1Click:Connect(function()
-        local char = lp.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local char = lp.Character local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if hrp then
-            savedPositions[slot] = hrp.CFrame
-            local pos = hrp.Position
+            savedPositions[slot] = hrp.CFrame local pos = hrp.Position
             SlotLabel.Text = string.format("📍 Slot %d: (%d, %d, %d)", slot, math.round(pos.X), math.round(pos.Y), math.round(pos.Z))
-            SlotLabel.TextColor3 = Color3.fromRGB(30, 190, 30)
-            TPBtn.BackgroundColor3 = Color3.fromRGB(30, 130, 30)
-            TPBtn.TextColor3 = Color3.new(1, 1, 1)
+            SlotLabel.TextColor3 = Color3.fromRGB(30, 190, 30) TPBtn.BackgroundColor3 = Color3.fromRGB(30, 130, 30) TPBtn.TextColor3 = Color3.new(1, 1, 1)
         end
     end)
     
     TPBtn.MouseButton1Click:Connect(function()
-        if savedPositions[slot] then
-            TeleportToPosition(savedPositions[slot])
+        if savedPositions[slot] then TeleportToPosition(savedPositions[slot])
         else
-            local oldText = SlotLabel.Text
-            SlotLabel.Text = "❌ Chưa có tọa độ!"
-            SlotLabel.TextColor3 = Color3.fromRGB(220, 50, 50)
-            task.wait(1)
-            SlotLabel.Text = oldText
-            SlotLabel.TextColor3 = savedPositions[slot] and Color3.fromRGB(30, 190, 30) or Color3.fromRGB(160, 160, 160)
+            local oldText = SlotLabel.Text SlotLabel.Text = "❌ Chưa có tọa độ!" SlotLabel.TextColor3 = Color3.fromRGB(220, 50, 50)
+            task.wait(1) SlotLabel.Text = oldText SlotLabel.TextColor3 = savedPositions[slot] and Color3.fromRGB(30, 190, 30) or Color3.fromRGB(160, 160, 160)
         end
     end)
 end
@@ -729,9 +687,7 @@ IncSpeed.MouseButton1Click:Connect(function() if currentTweenSpeed < 400 then cu
 -- [PART 5: KHU VỰC 3 - TAB "Player" (CLICK TARGET)]
 -- =========================================================
 local Khu3 = TabFrames[3]
-
-local refreshInterval = 15
-local refreshTimer = refreshInterval
+local refreshInterval = 15 local refreshTimer = refreshInterval
 
 local RefreshBtn = Instance.new("TextButton", Khu3)
 RefreshBtn.Size = UDim2.new(0.72, -4, 0, 22)
@@ -757,7 +713,6 @@ local ScrollingFrame = Instance.new("ScrollingFrame", Khu3)
 ScrollingFrame.Size = UDim2.new(1, -6, 0, 80)
 ScrollingFrame.Position = UDim2.new(0, 0, 0, 26)
 ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ScrollingFrame.ScrollBarThickness = 10 
 ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 165, 0)
 ScrollingFrame.Active = true
@@ -803,9 +758,7 @@ local function CreateTargetClickTool()
         if targetPart then
             local model = targetPart:FindFirstChildOfClass("Humanoid") and targetPart or targetPart.Parent
             local targetPlayer = Players:GetPlayerFromCharacter(model) or Players:GetPlayerFromCharacter(model.Parent)
-            if targetPlayer and targetPlayer ~= lp then
-                SelectedPlayer = targetPlayer PlayerLabel.Text = "Target: " .. targetPlayer.Name OrbitTargetLabel.Text = "Target: " .. targetPlayer.Name
-            end
+            if targetPlayer and targetPlayer ~= lp then SelectedPlayer = targetPlayer PlayerLabel.Text = "Target: " .. targetPlayer.Name OrbitTargetLabel.Text = "Target: " .. targetPlayer.Name end
         end
     end)
     targetTool.Equipped:Connect(function() lp:GetMouse().Icon = "rbxassetid://5655383515" end)
@@ -995,8 +948,58 @@ SpdPlus.MouseButton1Click:Connect(function() if orbitSpeed < 30 then orbitSpeed 
 InfZoomBtn.MouseButton1Click:Connect(function() infZoomActive = not infZoomActive UpdateZoomVisuals() ApplyCameraSettings() end)
 
 -- =========================================================
--- [PART 6: KHU VỰC TRỐNG TAB 4 & 5]
+-- [PART 6: 🛠️ NÂNG CẤP V2.6.8 - TAB 6 (SETTINGS & CREDITS)]
 -- =========================================================
+local Khu6 = TabFrames[6]
+
+local CreditTitle = Instance.new("TextLabel", Khu6)
+CreditTitle.Size = UDim2.new(1, 0, 0, 30)
+CreditTitle.Position = UDim2.new(0, 0, 0, 20)
+CreditTitle.BackgroundTransparency = 1
+CreditTitle.Text = "⚙️ SETTINGS & CREDITS"
+CreditTitle.Font = Enum.Font.GothamBold
+CreditTitle.TextSize = 13
+CreditTitle.TextColor3 = Color3.fromRGB(255, 165, 0)
+CreditTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local AuthorLabel = Instance.new("TextLabel", Khu6)
+AuthorLabel.Size = UDim2.new(1, 0, 0, 50)
+AuthorLabel.Position = UDim2.new(0, 0, 0, 70)
+AuthorLabel.BackgroundTransparency = 1
+AuthorLabel.Text = "Script được phát triển bởi:\n<font color='#ffaa00'><b>Abzzait</b></font>"
+AuthorLabel.Font = Enum.Font.GothamBold
+AuthorLabel.TextSize = 11
+AuthorLabel.TextColor3 = Color3.new(1, 1, 1)
+AuthorLabel.RichText = true
+AuthorLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local DiscordBtn = Instance.new("TextButton", Khu6)
+DiscordBtn.Size = UDim2.new(1, -10, 0, 32)
+DiscordBtn.Position = UDim2.new(0, 5, 0, 150)
+DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+DiscordBtn.Text = "Copy Link Discord"
+DiscordBtn.Font = Enum.Font.GothamBold
+DiscordBtn.TextSize = 11
+DiscordBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", DiscordBtn).CornerRadius = UDim.new(0, 5)
+
+local discordLink = "https://discord.gg/ugN678DGD"
+DiscordBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(discordLink)
+        DiscordBtn.Text = "Đã Copy Thành Công! ✔️"
+        DiscordBtn.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
+        task.wait(2)
+        DiscordBtn.Text = "Copy Link Discord"
+        DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    else
+        DiscordBtn.Text = "Không hỗ trợ tự copy!"
+        task.wait(2)
+        DiscordBtn.Text = "Copy Link Discord"
+    end
+end)
+
+-- Tạo các placeholder cho Tab trống 4 và 5
 local placeholder4 = Instance.new("TextLabel", TabFrames[4]) placeholder4.Size = UDim2.new(1, 0, 1, 0) placeholder4.BackgroundTransparency = 1 placeholder4.Text = "[Đang trống]" placeholder4.Font = Enum.Font.GothamBold placeholder4.TextSize = 12 placeholder4.TextColor3 = Color3.fromRGB(100, 100, 100)
 local placeholder5 = Instance.new("TextLabel", TabFrames[5]) placeholder5.Size = UDim2.new(1, 0, 1, 0) placeholder5.BackgroundTransparency = 1 placeholder5.Text = "[Đang trống]" placeholder5.Font = Enum.Font.GothamBold placeholder5.TextSize = 12 placeholder5.TextColor3 = Color3.fromRGB(100, 100, 100)
 
@@ -1013,4 +1016,4 @@ lp.CharacterAdded:Connect(function()
 end)
 
 UpdateVisuals() UpdateZoomVisuals()
-print("🔥 [Abzzait Hub V2.6.6] Khởi chạy thành công! Đã tích hợp WalkSpeed & JumpPower.")
+print("🔥 [Abzzait Hub V2.6.8] Hệ thống Tab nội bộ hoạt động mượt mà!")
