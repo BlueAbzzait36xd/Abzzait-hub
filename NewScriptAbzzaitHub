@@ -1,6 +1,6 @@
 -- =========================================================
 -- 🔥 ABZZAIT HUB VER[PHIÊN BẢN 1.0NEW] 🔥
--- Đầy đủ hệ thống các Tab - Hỗ trợ thu gọn [-] - Phím tắt ẩn hiện: [-]
+-- Đầy đủ hệ thống các Tab - Hỗ trợ thu gọn [-] - Tích hợp Bhop & Dash Hub
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -107,7 +107,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false 
 end)
 
--- 🛠️ NÚT THU GỌN [-] / [+] TRÊN TIÊU ĐỀ CHÍNH
+-- Nút thu gọn giao diện [-] / [+]
 local MinBtn = Instance.new("TextButton", MainFrame)
 MinBtn.Size = UDim2.new(0, 20, 0, 20)
 MinBtn.Position = UDim2.new(1, -50, 0, 5)
@@ -133,7 +133,7 @@ Footer.Size = UDim2.new(1, -20, 0, 30)
 Footer.Position = UDim2.new(0, 10, 1, -35)
 Footer.BackgroundTransparency = 1
 
--- Logic co giãn giao diện khi bấm [-]
+-- Logic co giãn giao diện chính khi nhấn nút thu gọn
 local isMinimized = false
 MinBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -183,7 +183,7 @@ for i = 1, 6 do
     end)
 end
 
--- Hàm tạo nút bấm chung
+-- Hàm tạo nút bấm nhanh
 local function createButton(parent, text, size, position, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = size
@@ -199,7 +199,7 @@ local function createButton(parent, text, size, position, callback)
 end
 
 -- =========================================================
--- [TAB 1 - HOME (CHIA CỘT ĐỐI XỨNG CHUẨN)]
+-- [TAB 1 - HOME]
 -- =========================================================
 local HomeTab = TabFrames[1]
 
@@ -219,7 +219,7 @@ LeftHeader.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Speed Hack
 local SpeedFrame = Instance.new("Frame", LeftCol)
-SpeedFrame.Size = UDim2.new(1, 0, 0, 24)
+SpeedFrame.Size = UDim2.new(1, 0, 0, 22)
 SpeedFrame.Position = UDim2.new(0, 0, 0, 25)
 SpeedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", SpeedFrame).CornerRadius = UDim.new(0, 4)
@@ -235,7 +235,7 @@ SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local SpeedInput = Instance.new("TextBox", SpeedFrame)
-SpeedInput.Size = UDim2.new(0.3, -5, 0, 18)
+SpeedInput.Size = UDim2.new(0.3, -5, 0, 16)
 SpeedInput.Position = UDim2.new(0.7, 0, 0, 3)
 SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 SpeedInput.Text = "16"
@@ -246,8 +246,8 @@ Instance.new("UICorner", SpeedInput).CornerRadius = UDim.new(0, 3)
 
 -- Nhảy Cao
 local JumpFrame = Instance.new("Frame", LeftCol)
-JumpFrame.Size = UDim2.new(1, 0, 0, 24)
-JumpFrame.Position = UDim2.new(0, 0, 0, 54)
+JumpFrame.Size = UDim2.new(1, 0, 0, 22)
+JumpFrame.Position = UDim2.new(0, 0, 0, 50)
 JumpFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", JumpFrame).CornerRadius = UDim.new(0, 4)
 
@@ -262,7 +262,7 @@ JumpLabel.TextColor3 = Color3.new(1, 1, 1)
 JumpLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 local JumpInput = Instance.new("TextBox", JumpFrame)
-JumpInput.Size = UDim2.new(0.3, -5, 0, 18)
+JumpInput.Size = UDim2.new(0.3, -5, 0, 16)
 JumpInput.Position = UDim2.new(0.7, 0, 0, 3)
 JumpInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 JumpInput.Text = "50"
@@ -274,7 +274,7 @@ Instance.new("UICorner", JumpInput).CornerRadius = UDim.new(0, 3)
 local antiLagActive = false
 local espNameActive = false
 
--- Vòng lặp khóa chỉ số
+-- Vòng lặp khóa chỉ số WalkSpeed & JumpPower
 RunService.Stepped:Connect(function()
     local char = lp.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -293,7 +293,7 @@ RunService.Stepped:Connect(function()
 end)
 
 -- Nút Antilag + FPS
-local AntiLagBtn = createButton(LeftCol, "Antilag + FPS: OFF", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 84), function()
+local AntiLagBtn = createButton(LeftCol, "Antilag + FPS: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 75), function()
     antiLagActive = not antiLagActive
     if antiLagActive then
         for _, v in pairs(Workspace:GetDescendants()) do
@@ -313,7 +313,7 @@ local AntiLagBtn = createButton(LeftCol, "Antilag + FPS: OFF", UDim2.new(1, 0, 0
 end)
 _G.AntiLagBtn = AntiLagBtn
 
--- Chức năng vẽ ESP Name
+-- Chức năng ESP Name
 local function ApplyESP()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= lp and p.Character then
@@ -345,7 +345,7 @@ local function ApplyESP()
 end
 
 -- Nút Esp Name Player
-local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 114), function()
+local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 100), function()
     espNameActive = not espNameActive
     ApplyESP()
     if espNameActive then
@@ -358,8 +358,8 @@ local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0,
 end)
 _G.EspNameBtn = EspNameBtn
 
--- Nút tải nhanh TP All (KillAll) từ GitHub
-local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 144), function()
+-- Nút TP All (KillAll) từ GitHub
+local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 125), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/TpAll"))()
     end)
@@ -368,10 +368,8 @@ local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 24
     end
 end)
 
--- =========================================================
--- [🛠️ BỔ SUNG NÚT TẢI NHANH FLY HACK TỪ GITHUB]
--- =========================================================
-local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 174), function()
+-- Nút Fly Hack từ GitHub
+local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 150), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/FlyGui"))()
     end)
@@ -379,6 +377,149 @@ local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 24), UDim2.n
         warn("Lỗi tải mã từ GitHub (FlyGui): " .. tostring(errRun))
     end
 end)
+
+-- =========================================================
+-- [🛠️ BỔ SUNG SCRIPT 1 - BHOP / SLIDE MOMENTUM (TOGGLE)]
+-- =========================================================
+local bhopActive = false
+local bhopJumpConn, bhopStepConn
+
+local function DisableBhop()
+    if bhopJumpConn then bhopJumpConn:Disconnect() bhopJumpConn = nil end
+    if bhopStepConn then bhopStepConn:Disconnect() bhopStepConn = nil end
+    pcall(function()
+        local char = lp.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hum then hum.WalkSpeed = 16 end
+        if hrp then hrp.CustomPhysicalProperties = nil end
+    end)
+end
+
+local function EnableBhop()
+    local char = lp.Character or lp.CharacterAdded:Wait()
+    local hum = char:WaitForChild("Humanoid")
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local baseSpeed = 16
+    local jumpBoost = 5
+    local speedCap = 100
+    local decelRate = 50
+    local lowFriction = 0.01
+    local currSpeed = baseSpeed
+
+    local origProps = hrp.CustomPhysicalProperties or PhysicalProperties.new(0.7, 0.3, 0.5, 1, 1)
+    local slipProps = PhysicalProperties.new(origProps.Density, lowFriction, origProps.Elasticity, 100, origProps.ElasticityWeight)
+
+    local lastHzSpeed = 0
+    local lastDir = Vector3.new(0, 0, 0)
+    local sliding = false
+
+    bhopJumpConn = hum.Jumping:Connect(function()
+        if not bhopActive then return end
+        currSpeed = math.min(currSpeed + jumpBoost, speedCap)
+        hum.WalkSpeed = currSpeed
+        sliding = false
+        hrp.CustomPhysicalProperties = origProps
+    end)
+
+    bhopStepConn = RunService.Heartbeat:Connect(function(delta)
+        if not bhopActive then return end
+        if not char or not char.Parent or not hum or not hrp then
+            char = lp.Character
+            if char then
+                hum = char:FindFirstChildOfClass("Humanoid")
+                hrp = char:FindFirstChild("HumanoidRootPart")
+            end
+            return
+        end
+
+        if hum.MoveDirection.Magnitude > 0 then
+            lastDir = hum.MoveDirection.Unit
+            sliding = false
+            hrp.CustomPhysicalProperties = origProps
+        end
+
+        local hzSpeedNow = (hrp.Velocity * Vector3.new(1, 0, 1)).Magnitude
+
+        if hzSpeedNow < lastHzSpeed * 0.5 and lastHzSpeed > baseSpeed * 1.5 then
+            currSpeed = baseSpeed
+            hum.WalkSpeed = baseSpeed
+            sliding = false
+            hrp.CustomPhysicalProperties = origProps
+        end
+
+        lastHzSpeed = hzSpeedNow
+
+        if hum.MoveDirection.Magnitude == 0 and currSpeed > baseSpeed then
+            if not sliding then
+                sliding = true
+                hrp.CustomPhysicalProperties = slipProps
+                hrp.Velocity = Vector3.new(lastDir.X * currSpeed, hrp.Velocity.Y, lastDir.Z * currSpeed)
+            end
+
+            currSpeed = math.max(baseSpeed, currSpeed - decelRate * delta)
+            hum.WalkSpeed = currSpeed
+
+            local velHz = hrp.Velocity * Vector3.new(1, 0, 1)
+            if velHz.Magnitude > baseSpeed then
+                hrp.Velocity = Vector3.new(
+                    lastDir.X * currSpeed,
+                    hrp.Velocity.Y,
+                    lastDir.Z * currSpeed
+                )
+            else
+                sliding = false
+                hrp.CustomPhysicalProperties = origProps
+                hum.WalkSpeed = baseSpeed
+                currSpeed = baseSpeed
+            end
+        elseif hum.MoveDirection.Magnitude == 0 then
+            currSpeed = baseSpeed
+            hum.WalkSpeed = baseSpeed
+            sliding = false
+            hrp.CustomPhysicalProperties = origProps
+        else
+            hum.WalkSpeed = currSpeed
+        end
+    end)
+end
+
+local BhopBtn
+BhopBtn = createButton(LeftCol, "Bhop Momentum: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 174), function()
+    bhopActive = not bhopActive
+    if bhopActive then
+        BhopBtn.Text = "Bhop Momentum: ON"
+        BhopBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        EnableBhop()
+    else
+        BhopBtn.Text = "Bhop Momentum: OFF"
+        BhopBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        DisableBhop()
+    end
+end)
+
+-- Lắng nghe nhân vật hồi sinh để cấu hình lại Bhop nếu đang bật
+lp.CharacterAdded:Connect(function()
+    if bhopActive then
+        task.wait(1)
+        DisableBhop()
+        EnableBhop()
+    end
+end)
+
+-- =========================================================
+-- [🛠️ BỔ SUNG SCRIPT 2 - DASH HUB (LOADSTRING)]
+-- =========================================================
+local DashBtn = createButton(LeftCol, "Dash Hub", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 200), function()
+    local successRun, errRun = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Dashhub./refs/heads/main/Dashnaoya"))()
+    end)
+    if not successRun then
+        warn("Lỗi tải mã Dash Hub từ GitHub: " .. tostring(errRun))
+    end
+end)
+
 
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function()
@@ -802,4 +943,4 @@ task.spawn(function()
     end
 end)
 
-print("🔥 [Abzzait Hub] Toàn bộ hệ thống giao diện hoạt động ổn định!")
+print("🔥 [Abzzait Hub] Tải hoàn tất bảng điều khiển!")
