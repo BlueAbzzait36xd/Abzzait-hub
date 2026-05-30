@@ -1,6 +1,6 @@
 -- =========================================================
 -- 🔥 ABZZAIT HUB VER[PHIÊN BẢN 1.0NEW] 🔥
--- Đầy đủ hệ thống các Tab - Tích hợp nút tải nhanh TP All từ GitHub
+-- Đầy đủ hệ thống các Tab - Hỗ trợ thu gọn [-] - Phím tắt ẩn hiện: [-]
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -74,10 +74,10 @@ UIS.InputEnded:Connect(function()
     drag = false 
 end)
 
--- Phím tắt RightControl để Ẩn/Hiện Menu
+-- Phím tắt phím [-] hoặc RightControl để Ẩn/Hiện nhanh Menu
 UIS.InputBegan:Connect(function(input, processed)
     if not processed then
-        if input.KeyCode == Enum.KeyCode.RightControl then
+        if input.KeyCode == Enum.KeyCode.Minus or input.KeyCode == Enum.KeyCode.RightControl then
             MainFrame.Visible = not MainFrame.Visible
         end
     end
@@ -86,7 +86,7 @@ end)
 -- Tiêu đề
 local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -40, 0, 30)
+Title.Size = UDim2.new(1, -60, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.Text = "Abzzait Hub ver[phiên bản 1.0new] - " .. gameName
 Title.Font = Enum.Font.GothamBold
@@ -107,6 +107,16 @@ CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false 
 end)
 
+-- 🛠️ NÚT THU GỌN [-] / [+] TRÊN TIÊU ĐỀ CHÍNH
+local MinBtn = Instance.new("TextButton", MainFrame)
+MinBtn.Size = UDim2.new(0, 20, 0, 20)
+MinBtn.Position = UDim2.new(1, -50, 0, 5)
+MinBtn.BackgroundTransparency = 1
+MinBtn.Text = "-"
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 14
+MinBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
 -- Thanh chứa Tab ngang cố định
 local TabBar = Instance.new("Frame", MainFrame)
 TabBar.Size = UDim2.new(1, -20, 0, 30)
@@ -117,6 +127,30 @@ local ContentContainer = Instance.new("Frame", MainFrame)
 ContentContainer.Size = UDim2.new(1, -20, 0, 245)
 ContentContainer.Position = UDim2.new(0, 10, 0, 65)
 ContentContainer.BackgroundTransparency = 1
+
+local Footer = Instance.new("Frame", MainFrame)
+Footer.Size = UDim2.new(1, -20, 0, 30)
+Footer.Position = UDim2.new(0, 10, 1, -35)
+Footer.BackgroundTransparency = 1
+
+-- Logic co giãn giao diện khi bấm [-]
+local isMinimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame.Size = UDim2.new(0, 540, 0, 30)
+        TabBar.Visible = false
+        ContentContainer.Visible = false
+        Footer.Visible = false
+        MinBtn.Text = "+"
+    else
+        MainFrame.Size = UDim2.new(0, 540, 0, 350)
+        TabBar.Visible = true
+        ContentContainer.Visible = true
+        Footer.Visible = true
+        MinBtn.Text = "-"
+    end
+end)
 
 local TabButtons = {}
 local TabFrames = {}
@@ -240,7 +274,7 @@ Instance.new("UICorner", JumpInput).CornerRadius = UDim.new(0, 3)
 local antiLagActive = false
 local espNameActive = false
 
--- Vòng lặp khóa chỉ số nhân vật
+-- Vòng lặp khóa chỉ số
 RunService.Stepped:Connect(function()
     local char = lp.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -324,15 +358,25 @@ local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0,
 end)
 _G.EspNameBtn = EspNameBtn
 
--- =========================================================
--- [🛠️ BỔ SUNG NÚT TP ALL (KILLALL) CHẠY LOADSTRING GITHUB]
--- =========================================================
+-- Nút tải nhanh TP All (KillAll) từ GitHub
 local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 144), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/TpAll"))()
     end)
     if not successRun then
-        warn("Lỗi tải mã từ GitHub: " .. tostring(errRun))
+        warn("Lỗi tải mã từ GitHub (TpAll): " .. tostring(errRun))
+    end
+end)
+
+-- =========================================================
+-- [🛠️ BỔ SUNG NÚT TẢI NHANH FLY HACK TỪ GITHUB]
+-- =========================================================
+local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 24), UDim2.new(0, 0, 0, 174), function()
+    local successRun, errRun = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/FlyGui"))()
+    end)
+    if not successRun then
+        warn("Lỗi tải mã từ GitHub (FlyGui): " .. tostring(errRun))
     end
 end)
 
@@ -736,11 +780,6 @@ end
 -- =========================================================
 -- [PHẦN CHÂN TRANG - FOOTER]
 -- =========================================================
-local Footer = Instance.new("Frame", MainFrame)
-Footer.Size = UDim2.new(1, -20, 0, 30)
-Footer.Position = UDim2.new(0, 10, 1, -35)
-Footer.BackgroundTransparency = 1
-
 local GameTimeLbl = Instance.new("TextLabel", Footer)
 GameTimeLbl.Size = UDim2.new(1, 0, 1, 0)
 GameTimeLbl.BackgroundTransparency = 1
@@ -763,4 +802,4 @@ task.spawn(function()
     end
 end)
 
-print("🔥 [Abzzait Hub] Tích hợp thành công nút kích hoạt TP All!")
+print("🔥 [Abzzait Hub] Toàn bộ hệ thống giao diện hoạt động ổn định!")
