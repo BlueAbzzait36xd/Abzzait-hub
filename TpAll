@@ -1,6 +1,6 @@
 -- =========================================================
 -- 🔥 ABZZAIT STANDALONE KILLALL (TP ALL) SYSTEM 🔥
--- Hỗ trợ phím tắt E để bật/tắt nhanh - Auto Click & NoCollide
+-- Hỗ trợ nút thu gọn [-] / [+] - Phím tắt E - Auto Click & NoCollide
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -29,7 +29,7 @@ local Gui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
 Gui.Name = "Abzzait_KillAll_System"
 Gui.ResetOnSpawn = false
 
--- Khung giao diện nhỏ gọn (260x220)
+-- Khung giao diện chính (260x220)
 local MainFrame = Instance.new("Frame", Gui)
 MainFrame.Size = UDim2.new(0, 260, 0, 220)
 MainFrame.Position = UDim2.new(0.5, -130, 0.3, 0)
@@ -59,18 +59,18 @@ UIS.InputEnded:Connect(function()
     drag = false 
 end)
 
--- Tiêu đề bảng điều khiển
+-- Tiêu đề bảng điều khiển (Chừa chỗ cho 2 nút bên phải)
 local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -30, 0, 30)
+Title.Size = UDim2.new(1, -60, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "⚔️ Abzzait KillAll (TP All) System"
+Title.Text = "⚔️ Abzzait KillAll (TP All)"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Nút tắt nhanh bảng (X)
+-- Nút đóng GUI (X)
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 20, 0, 20)
 CloseBtn.Position = UDim2.new(1, -25, 0, 5)
@@ -82,6 +82,16 @@ CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
 CloseBtn.MouseButton1Click:Connect(function() 
     Gui:Destroy() 
 end)
+
+-- 🛠️ BỔ SUNG NÚT THU GỌN [-] / [+]
+local MinBtn = Instance.new("TextButton", MainFrame)
+MinBtn.Size = UDim2.new(0, 20, 0, 20)
+MinBtn.Position = UDim2.new(1, -50, 0, 5)
+MinBtn.BackgroundTransparency = 1
+MinBtn.Text = "-"
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 14
+MinBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
 
 -- Phím tắt bật/tắt hiển thị nhanh bảng điều khiển (RightControl)
 UIS.InputBegan:Connect(function(input, processed)
@@ -115,7 +125,6 @@ local loopKillAllActive = false
 local BACK_OFFSET_DISTANCE = 2.0 -- Khoảng cách đứng sau mục tiêu
 local SPEED_TUNER = 0.02 -- Tốc độ delay giữa mỗi lần dịch chuyển
 
--- Lấy danh sách tất cả mục tiêu hợp lệ
 local function GetTargetsIncludingDummies()
     local targets = {}
     for _, p in pairs(Players:GetPlayers()) do
@@ -140,7 +149,6 @@ local function GetTargetsIncludingDummies()
     return targets
 end
 
--- Vòng lặp chính dịch chuyển liên tục
 local function RunKillAllLoop()
     if loopKillAllActive then 
         return 
@@ -166,7 +174,6 @@ local function RunKillAllLoop()
     end)
 end
 
--- Vòng lặp tự động click tấn công và tắt va chạm
 RunService.Heartbeat:Connect(function()
     if toggledKillAll then
         if lp.Character then
@@ -187,7 +194,6 @@ end)
 
 local ToggleBtn
 
--- Hàm xử lý Bật/Tắt KillAll dùng chung cho Click và Phím tắt E
 local function ToggleKillAll()
     toggledKillAll = not toggledKillAll
     if toggledKillAll then
@@ -200,10 +206,8 @@ local function ToggleKillAll()
     end
 end
 
--- 1. Nút Bật / Tắt KillAll chính (Hiện chữ phím tắt E)
 ToggleBtn = createButton(MainFrame, "KillAll: OFF (E)", UDim2.new(1, -20, 0, 32), UDim2.new(0, 10, 0, 35), ToggleKillAll)
 
--- Lắng nghe phím E để kích hoạt bật/tắt nhanh
 UIS.InputBegan:Connect(function(input, processed)
     if not processed then
         if input.KeyCode == Enum.KeyCode.E then
@@ -212,7 +216,6 @@ UIS.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- 2. Thanh chỉnh khoảng cách sau lưng (Back Offset)
 local OffsetFrame = Instance.new("Frame", MainFrame)
 OffsetFrame.Size = UDim2.new(1, -20, 0, 26)
 OffsetFrame.Position = UDim2.new(0, 10, 0, 75)
@@ -243,7 +246,6 @@ createButton(OffsetFrame, "+", UDim2.new(0, 24, 0, 18), UDim2.new(1, -28, 0, 4),
     end
 end)
 
--- 3. Thanh chỉnh Delay Speed (Tốc độ quét)
 local SpeedFrame = Instance.new("Frame", MainFrame)
 SpeedFrame.Size = UDim2.new(1, -20, 0, 26)
 SpeedFrame.Position = UDim2.new(0, 10, 0, 109)
@@ -274,15 +276,37 @@ createButton(SpeedFrame, "+", UDim2.new(0, 24, 0, 18), UDim2.new(1, -28, 0, 4), 
     end
 end)
 
--- Chân trang hiển thị phím tắt ẩn/hiện bảng điều khiển chính
 local HelpLabel = Instance.new("TextLabel", MainFrame)
 HelpLabel.Size = UDim2.new(1, -20, 0, 20)
 HelpLabel.Position = UDim2.new(0, 10, 1, -25)
 HelpLabel.BackgroundTransparency = 1
-HelpLabel.Text = "Phím ẩn/hiện bảng: RightControl | Kích hoạt: E"
+HelpLabel.Text = "Phím ẩn bảng: RightControl | Kích hoạt: E"
 HelpLabel.Font = Enum.Font.GothamBold
 HelpLabel.TextSize = 8
 HelpLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 HelpLabel.TextXAlignment = Enum.TextXAlignment.Center
 
-print("⚔️ [Abzzait Standalone KillAll] Đã cấu hình hoàn tất phím tắt E!")
+-- =========================================================
+-- [LẮNG NGHE SỰ KIỆN NÚT THU GỌN]
+-- =========================================================
+local isMinimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame.Size = UDim2.new(0, 260, 0, 30)
+        ToggleBtn.Visible = false
+        OffsetFrame.Visible = false
+        SpeedFrame.Visible = false
+        HelpLabel.Visible = false
+        MinBtn.Text = "+"
+    else
+        MainFrame.Size = UDim2.new(0, 260, 0, 220)
+        ToggleBtn.Visible = true
+        OffsetFrame.Visible = true
+        SpeedFrame.Visible = true
+        HelpLabel.Visible = true
+        MinBtn.Text = "-"
+    end
+end)
+
+print("⚔️ [Abzzait Standalone KillAll] Đã tích hợp nút thu gọn giao diện thành công!")
