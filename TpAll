@@ -1,6 +1,6 @@
 -- =========================================================
--- 🔥 ABZZAIT STANDALONE KILLALL (TP ALL) SYSTEM - V2.4 🔥
--- SỬA LỖI GIÃN KHUNG ĐÈ NÚT - CỐ ĐỊNH KÍCH THƯỚC CỘT CHỨC NĂNG
+-- 🔥 ABZZAIT STANDALONE KILLALL (TP ALL) SYSTEM - V2.4.1 🔥
+-- Tích hợp màn hình đen cảnh báo tối giản (Black & White) - Phím tắt: E
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -57,6 +57,7 @@ MainFrame.Position = UDim2.new(0.5, -130, 0.3, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
+MainFrame.Visible = false -- Mặc định ẩn bảng điều khiển chính lúc đầu để hiện màn hình đen
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
 
 -- Hệ thống kéo thả GUI
@@ -89,7 +90,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(0, 180, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "⚔️ Abzzait KillAll System V2.4"
+Title.Text = "⚔️ Abzzait KillAll System V2.4.1"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -98,7 +99,7 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 -- Nút thu gọn giao diện [-]
 local MinBtn = Instance.new("TextButton", MainFrame)
 MinBtn.Size = UDim2.new(0, 20, 0, 20)
-MinBtn.Position = UDim2.new(0, 190, 0, 5) -- Đặt vị trí cố định để không bị trôi khi mở rộng
+MinBtn.Position = UDim2.new(0, 190, 0, 5)
 MinBtn.BackgroundTransparency = 1
 MinBtn.Text = "-"
 MinBtn.Font = Enum.Font.GothamBold
@@ -108,7 +109,7 @@ MinBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
 -- Nút tắt hoàn toàn GUI (X)
 local CloseBtn = Instance.new("TextButton", MainFrame)
 CloseBtn.Size = UDim2.new(0, 20, 0, 20)
-CloseBtn.Position = UDim2.new(0, 215, 0, 5) -- Đặt vị trí cố định cạnh nút thu gọn
+CloseBtn.Position = UDim2.new(0, 215, 0, 5)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "X"
 CloseBtn.Font = Enum.Font.GothamBold
@@ -388,7 +389,7 @@ local keyEConn = UIS.InputBegan:Connect(function(input, processed)
 end)
 table.insert(connections, keyEConn)
 
--- 2. Nút chuyển đổi chế độ quét mục tiêu (Cố định chiều rộng 240)
+-- 2. Nút chuyển đổi chế độ quét mục tiêu (Hỗ trợ xoay vòng 4 chế độ)
 local ModeBtn
 ModeBtn = createButton(MainFrame, "Chế Độ Quét: Tuần Tự", UDim2.new(0, 240, 0, 24), UDim2.new(0, 10, 0, 70), function()
     if killAllMode == "Sequential" then
@@ -514,6 +515,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     toggledKillAll = false
     _G.AbzzaitKillAllSession = nil 
     
+    -- Ngắt toàn bộ kết nối chạy ẩn
     for _, conn in ipairs(connections) do
         if conn then
             pcall(function() conn:Disconnect() end)
@@ -551,7 +553,67 @@ MinBtn.MouseButton1Click:Connect(function()
         HelpLabel.Visible = true
         MinBtn.Text = "-"
     end
-    UpdatePanelState()
+    UpdatePanelState() -- Gọi hàm đồng bộ hóa giao diện
 end)
 
-print("⚔️ [Abzzait KillAll V2.4] Đã khắc phục hoàn tất lỗi giãn khung!")
+-- =========================================================
+-- [🛠️ BẢN VÁ: MÀN HÌNH CHỜ XÁC NHẬN ĐEN PHẲNG TỐI GIẢN (BLACK & WHITE)]
+-- =========================================================
+local function ShowConfirmScreen()
+    -- Tạm thời ẩn menu chính để người dùng xác nhận
+    MainFrame.Visible = false
+    
+    local ConfirmGui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
+    ConfirmGui.Name = "Abzzait_Confirm_GUI"
+    ConfirmGui.ResetOnSpawn = false
+    ConfirmGui.DisplayOrder = 99999 -- Ưu tiên phủ lên cao nhất toàn màn hình
+    
+    -- Màn hình đen phẳng hoàn toàn (Đơn điệu, không màu sắc khác)
+    local BlackBG = Instance.new("Frame", ConfirmGui)
+    BlackBG.Size = UDim2.new(1, 0, 1, 0)
+    BlackBG.Position = UDim2.new(0, 0, 0, 0)
+    BlackBG.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    BlackBG.BorderSizePixel = 0
+    
+    -- Khung chứa nội dung chữ ở chính giữa màn hình
+    local Container = Instance.new("Frame", BlackBG)
+    Container.Size = UDim2.new(0, 440, 0, 160)
+    Container.Position = UDim2.new(0.5, -220, 0.5, -80)
+    Container.BackgroundTransparency = 1
+    
+    -- Dòng văn bản cảnh báo màu trắng đơn điệu
+    local WarnLabel = Instance.new("TextLabel", Container)
+    WarnLabel.Size = UDim2.new(1, 0, 0, 90)
+    WarnLabel.Position = UDim2.new(0, 0, 0, 0)
+    WarnLabel.BackgroundTransparency = 1
+    WarnLabel.Text = "If you want to use TP/Kill All (in AC game), you need to use Anti-AC"
+    WarnLabel.Font = Enum.Font.SourceSansBold
+    WarnLabel.TextSize = 32 
+    WarnLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng thuần túy
+    WarnLabel.TextWrapped = true
+    WarnLabel.TextXAlignment = Enum.TextXAlignment.Center
+    WarnLabel.TextYAlignment = Enum.TextYAlignment.Center
+    
+    -- Nút OK viền trắng nền đen tối giản đặt ngay dưới văn bản
+    local OkBtn = Instance.new("TextButton", Container)
+    OkBtn.Size = UDim2.new(0, 80, 0, 26)
+    OkBtn.Position = UDim2.new(0.5, -40, 0, 110)
+    OkBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Nền đen
+    OkBtn.BorderSizePixel = 1
+    OkBtn.BorderColor3 = Color3.fromRGB(255, 255, 255) -- Viền trắng
+    OkBtn.Text = "OK"
+    OkBtn.Font = Enum.Font.SourceSansBold
+    OkBtn.TextSize = 30
+    OkBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
+    
+    -- Phục hồi giao diện chính khi click OK
+    OkBtn.MouseButton1Click:Connect(function()
+        ConfirmGui:Destroy() -- Xóa bỏ hoàn toàn màn hình xác nhận đen
+        MainFrame.Visible = true -- Kích hoạt bảng hack di động xuất hiện
+    end)
+end
+
+-- Chạy màn hình xác nhận tĩnh ngay khi tải Script
+task.spawn(ShowConfirmScreen)
+
+print("⚔️ [Abzzait KillAll V2.4.1] Đã vá lỗi và tích hợp màn hình xác nhận phẳng thành công!")
