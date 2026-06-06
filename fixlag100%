@@ -1,1 +1,502 @@
 
+-- =========================================================
+-- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.3 ⚡
+-- BẬT USEPARTCOLOR CHO MESH - XÓA BẦU TRỜI THÀNH XÁM TOÀN DIỆN
+-- Phím tắt ẩn/hiện bảng điều khiển: RightControl
+-- =========================================================
+
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local VirtualUser = game:GetService("VirtualUser")
+local lp = Players.LocalPlayer
+
+-- Khởi tạo mã phiên duy nhất
+local currentSession = tostring(math.random(100000, 999999)) .. "_" .. tostring(os.clock())
+_G.AbzzaitFpsSession = currentSession
+
+-- Tự động dọn dẹp giao diện cũ trùng tên nếu có
+local oldGui = lp.PlayerGui:FindFirstChild("Abzzait_FPS_Booster_GUI")
+if oldGui then
+    pcall(function() 
+        oldGui:Destroy() 
+    end)
+end
+
+local connections = {}
+local fpsActive = false
+local isMinimized = false
+
+-- Lưu trữ vật liệu, màu sắc và bầu trời gốc để khôi phục khi tắt
+local originalMaterials = {}
+local originalColors = {}
+local hiddenAccessories = {} 
+local originalTransparencies = {}
+local originalSky = {}
+local originalAmbient = {}
+
+-- Khởi tạo Anti-AFK
+local idledConn = lp.Idled:Connect(function()
+    if _G.AbzzaitFpsSession ~= currentSession then return end
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new(0, 0))
+end)
+table.insert(connections, idledConn)
+
+-- Khởi tạo GUI chính (260x130)
+local Gui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
+Gui.Name = "Abzzait_FPS_Booster_GUI"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame", Gui)
+MainFrame.Size = UDim2.new(0, 260, 0, 130)
+MainFrame.Position = UDim2.new(0.5, -130, 0.45, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
+
+-- Hệ thống kéo thả GUI
+local drag, start, pos
+MainFrame.InputBegan:Connect(function(i)
+    if _G.AbzzaitFpsSession ~= currentSession then return end
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drag = true
+        start = i.Position
+        pos = MainFrame.Position
+    end
+end)
+
+local dragChangedConn = UIS.InputChanged:Connect(function(i)
+    if _G.AbzzaitFpsSession ~= currentSession then return end
+    if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local delta = i.Position - start
+        MainFrame.Position = UDim2.new(pos.X.Scale, pos.X.Offset + delta.X, pos.Y.Scale, pos.Y.Offset + delta.Y)
+    end
+end)
+table.insert(connections, dragChangedConn)
+
+local dragEndedConn = UIS.InputEnded:Connect(function() 
+    drag = false 
+end)
+table.insert(connections, dragEndedConn)
+
+-- Tiêu đề
+local Title = Instance.new("TextLabel", MainFrame)
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, -60, 0, 30)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = "⚡ Abzzait FPS Booster V2.3"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 11
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Nút thu gọn [-]
+local MinBtn = Instance.new("TextButton", MainFrame)
+MinBtn.Size = UDim2.new(0, 20, 0, 20)
+MinBtn.Position = UDim2.new(1, -50, 0, 5)
+MinBtn.BackgroundTransparency = 1
+MinBtn.Text = "-"
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 14
+MinBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
+-- Nút tắt hoàn toàn [X]
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+CloseBtn.Position = UDim2.new(1, -25, 0, 5)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "X"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 12
+CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
+-- Phím tắt hiển thị bảng (RightControl)
+local inputBeganConn = UIS.InputBegan:Connect(function(input, processed)
+    if _G.AbzzaitFpsSession ~= currentSession then return end
+    if not processed then
+        if input.KeyCode == Enum.KeyCode.RightControl then
+            MainFrame.Visible = not MainFrame.Visible
+        end
+    end
+end)
+table.insert(connections, inputBeganConn)
+
+-- Hàm tạo nút bấm nhanh gọn
+local function createButton(parent, text, size, position, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = size
+    btn.Position = position
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- =========================================================
+-- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.3]
+-- =========================================================
+
+-- Khóa cài đặt đồ họa mượt nhất của hệ thống
+local function ForceSmoothGraphics()
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+    pcall(function()
+        Lighting.GlobalShadows = false
+    end)
+    pcall(function()
+        Lighting.Brightness = 2
+    end)
+    pcall(function()
+        Lighting.FogEnd = 9e9
+    end)
+    pcall(function()
+        Workspace.Terrain.WaterWaveSize = 0
+        Workspace.Terrain.WaterWaveSpeed = 0
+        Workspace.Terrain.WaterReflectance = 0
+        Workspace.Terrain.WaterDetailSize = 0
+    end)
+    pcall(function()
+        Workspace.LevelOfDetail = Enum.ModelLevelOfDetail.Low 
+    end)
+end
+
+-- Hóa xám cơ thể nhân vật (Sử dụng UsePartColor cho Mesh)
+local function SimplifyCharacter(char)
+    if not char then return end
+    task.spawn(function()
+        for _, item in ipairs(char:GetDescendants()) do
+            pcall(function()
+                if item:IsA("Accessory") then
+                    local handle = item:FindFirstChild("Handle") or item
+                    if handle and handle:IsA("BasePart") then
+                        if not originalTransparencies[handle] then
+                            originalTransparencies[handle] = handle.Transparency
+                        end
+                        handle.Transparency = 1 
+                    end
+                elseif item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
+                    table.insert(hiddenAccessories, {item = item, parent = char})
+                    item.Parent = nil 
+                elseif item:IsA("BasePart") then
+                    if not originalMaterials[item] then
+                        originalMaterials[item] = item.Material
+                        originalColors[item] = item.Color
+                    end
+                    item.Material = Enum.Material.SmoothPlastic
+                    item.Color = Color3.fromRGB(120, 120, 120)
+                    item.CastShadow = false 
+                    
+                    -- Ép MeshPart sử dụng màu xám phẳng thay vì màu vân gốc
+                    if item:IsA("MeshPart") then
+                        item.UsePartColor = true
+                    end
+                elseif item:IsA("SpecialMesh") then
+                    item.TextureID = "" -- Xóa vân SpecialMesh (Ghi được)
+                end
+            end)
+        end
+    end)
+end
+
+-- Biến đổi toàn bộ bầu trời thành một màu xám phẳng đồng nhất
+local function ApplyGraySky()
+    pcall(function()
+        -- Lưu trữ và tạm thời cất đi các cài đặt bầu trời gốc
+        originalAmbient.Ambient = Lighting.Ambient
+        originalAmbient.OutdoorAmbient = Lighting.OutdoorAmbient
+        
+        for _, child in ipairs(Lighting:GetChildren()) do
+            if child:IsA("Sky") or child:IsA("Clouds") or child:IsA("Atmosphere") then
+                table.insert(originalSky, {item = child, parent = Lighting})
+                child.Parent = nil
+            end
+        end
+        
+        -- Tạo khí quyển ảo màu xám siêu đậm đặc phủ kín bầu trời (Bypass tốt hơn)
+        local grayAtmos = Instance.new("Atmosphere")
+        grayAtmos.Name = "GrayAtmos"
+        grayAtmos.Density = 1 -- Đậm đặc tối đa để che phủ hoàn toàn bầu trời gốc
+        grayAtmos.Color = Color3.fromRGB(120, 120, 120)
+        grayAtmos.Decay = Color3.fromRGB(120, 120, 120)
+        grayAtmos.Glare = 0
+        grayAtmos.Haze = 0
+        grayAtmos.Parent = Lighting
+        
+        -- Thiết lập ánh sáng môi trường đồng màu xám
+        Lighting.Ambient = Color3.fromRGB(120, 120, 120)
+        Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 120)
+    end)
+end
+
+-- Tối ưu hóa thế giới (Hóa xám toàn bộ map + Gỡ decal)
+local function OptimizeWorld()
+    local descendants = Workspace:GetDescendants()
+    local count = 0
+    
+    task.spawn(function()
+        for _, v in ipairs(descendants) do
+            if not fpsActive or _G.AbzzaitFpsSession ~= currentSession then return end
+            
+            pcall(function()
+                -- 1. Hóa xám phẳng toàn bộ bản đồ và vật thể tĩnh
+                if v:IsA("BasePart") and not v:IsA("Terrain") then
+                    if not originalMaterials[v] then
+                        originalMaterials[v] = v.Material
+                        originalColors[v] = v.Color
+                    end
+                    v.Material = Enum.Material.SmoothPlastic
+                    v.Color = Color3.fromRGB(120, 120, 120) 
+                    v.CastShadow = false 
+                    
+                    -- Ép MeshPart trên bản đồ sử dụng màu xám phẳng
+                    if v:IsA("MeshPart") then
+                        v.UsePartColor = true
+                    end
+                    
+                -- 2. Làm ẩn dán tường Decal & Kết cấu
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Transparency = 1
+                elseif v:IsA("SpecialMesh") then
+                    v.TextureID = ""
+                    
+                -- 3. Tắt các hiệu ứng hạt khói lửa
+                elseif v:IsA("ParticleEmitter") or v:IsA("Sparkles") or v:IsA("Smoke") or v:IsA("Fire") then
+                    v.Enabled = false
+                    
+                -- 4. Hạ thấp độ chi tiết của Model
+                elseif v:IsA("Model") then
+                    v.LevelOfDetail = Enum.ModelLevelOfDetail.Low
+                end
+            end)
+            
+            count = count + 1
+            if count % 300 == 0 then
+                task.wait()
+            end
+        end
+    end)
+    
+    -- Tắt các hiệu ứng hậu kỳ của Lighting
+    for _, effect in ipairs(Lighting:GetChildren()) do
+        pcall(function()
+            if effect:IsA("PostEffect") or effect:IsA("Atmosphere") or effect:IsA("Clouds") then
+                effect.Enabled = false
+            end
+        end)
+    end
+end
+
+-- Khôi phục mọi trạng thái đồ họa cũ của game về mặc định
+local function RestoreOriginalGraphics()
+    -- Khôi phục màu sắc/vật liệu bản đồ & người chơi
+    for part, mat in pairs(originalMaterials) do
+        if part and part.Parent then
+            pcall(function()
+                part.Material = mat
+                part.Color = originalColors[part]
+                part.CastShadow = true
+                if part:IsA("MeshPart") then
+                    part.UsePartColor = false
+                end
+            end)
+        end
+    end
+    originalMaterials = {}
+    originalColors = {}
+    
+    -- Khôi phục độ hiển thị của phụ kiện người chơi
+    for handle, trans in pairs(originalTransparencies) do
+        if handle and handle.Parent then
+            pcall(function()
+                handle.Transparency = trans
+            end)
+        end
+    end
+    originalTransparencies = {}
+    
+    -- Khôi phục quần áo người chơi
+    for _, data in ipairs(hiddenAccessories) do
+        if data.item and data.parent then
+            pcall(function()
+                data.item.Parent = data.parent
+            end)
+        end
+    end
+    hiddenAccessories = {}
+    
+    -- Khôi phục bầu trời gốc
+    for _, data in ipairs(originalSky) do
+        if data.item and data.parent then
+            pcall(function()
+                data.item.Parent = data.parent
+            end)
+        end
+    end
+    originalSky = {}
+    
+    -- Xóa bầu khí quyển ảo màu xám
+    local customAtmos = Lighting:FindFirstChild("GrayAtmos")
+    if customAtmos then
+        pcall(function()
+            customAtmos:Destroy()
+        end)
+    end
+    
+    -- Khôi phục ánh sáng môi trường mặc định
+    pcall(function()
+        if originalAmbient.Ambient then
+            Lighting.Ambient = originalAmbient.Ambient
+            Lighting.OutdoorAmbient = originalAmbient.OutdoorAmbient
+        end
+    end)
+    originalAmbient = {}
+    
+    -- Bật lại các hiệu ứng môi trường thế giới
+    local descendants = Workspace:GetDescendants()
+    task.spawn(function()
+        for _, v in ipairs(descendants) do
+            pcall(function()
+                if v:IsA("Decal") or v:IsA("Texture") then
+                    v.Transparency = 0
+                elseif v:IsA("ParticleEmitter") or v:IsA("Sparkles") or v:IsA("Smoke") or v:IsA("Fire") then
+                    v.Enabled = true
+                elseif v:IsA("Model") then
+                    v.LevelOfDetail = Enum.ModelLevelOfDetail.High
+                end
+            end)
+        end
+    end)
+    
+    for _, effect in ipairs(Lighting:GetChildren()) do
+        pcall(function()
+            if effect:IsA("PostEffect") or effect:IsA("Atmosphere") or effect:IsA("Clouds") then
+                effect.Enabled = true
+            end
+        end)
+    end
+    
+    pcall(function()
+        Workspace.LevelOfDetail = Enum.ModelLevelOfDetail.High
+    end)
+end
+
+-- =========================================================
+-- [VÒNG LẶP ĐỒNG BỘ TRẠNG THÁI]
+-- =========================================================
+local loopConnection
+
+local function StartLagFix()
+    ForceSmoothGraphics()
+    ApplyGraySky()
+    OptimizeWorld()
+    
+    -- Tối ưu hóa các người chơi hiện có trong server
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= lp and p.Character then
+            SimplifyCharacter(p.Character)
+        end
+    end
+    
+    -- Vòng lặp khóa đồ họa mượt liên tục
+    loopConnection = RunService.Heartbeat:Connect(function()
+        if _G.AbzzaitFpsSession ~= currentSession then return end
+        if not fpsActive then return end
+        
+        ForceSmoothGraphics()
+    end)
+    
+    -- Tự động đơn giản hóa những người chơi mới hồi sinh
+    local charAddedConn = Players.PlayerAdded:Connect(function(p)
+        p.CharacterAdded:Connect(function(char)
+            if fpsActive then
+                task.wait(1)
+                SimplifyCharacter(char)
+            end
+        end)
+    end)
+    table.insert(connections, charAddedConn)
+end
+
+local function StopLagFix()
+    if loopConnection then
+        loopConnection:Disconnect()
+        loopConnection = nil
+    end
+    RestoreOriginalGraphics()
+end
+
+-- =========================================================
+-- [GIAO DIỆN ĐIỀU KHIỂN CHI TIẾT]
+-- =========================================================
+local ToggleBtn
+local function ToggleFPS()
+    fpsActive = not fpsActive
+    if fpsActive then
+        StartLagFix()
+        ToggleBtn.Text = "FPS Booster: ACTIVE ⚡"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
+    else
+        StopLagFix()
+        ToggleBtn.Text = "FPS Booster: OFF"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end
+end
+
+ToggleBtn = createButton(MainFrame, "FPS Booster: OFF", UDim2.new(1, -20, 0, 32), UDim2.new(0, 10, 0, 35), ToggleFPS)
+
+-- Hướng dẫn phím tắt chân trang
+local HelpLabel = Instance.new("TextLabel", MainFrame)
+HelpLabel.Size = UDim2.new(1, -20, 0, 20)
+HelpLabel.Position = UDim2.new(0, 10, 1, -25)
+HelpLabel.BackgroundTransparency = 1
+HelpLabel.Text = "Ẩn hiện bảng điều khiển: RightControl"
+HelpLabel.Font = Enum.Font.GothamBold
+HelpLabel.TextSize = 8
+HelpLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+HelpLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+-- =========================================================
+-- [DỌN DẸP SẠCH SẼ KHI BẤM NÚT ĐÓNG (X)]
+-- =========================================================
+CloseBtn.MouseButton1Click:Connect(function() 
+    fpsActive = false
+    StopLagFix()
+    _G.AbzzaitFpsSession = nil 
+    
+    -- Ngắt toàn bộ kết nối chạy ẩn
+    for _, conn in ipairs(connections) do
+        if conn then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    
+    Gui:Destroy()
+end)
+
+-- Thu gọn / Mở rộng bảng bằng nút [-]
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame.Size = UDim2.new(0, 260, 0, 30)
+        ToggleBtn.Visible = false
+        HelpLabel.Visible = false
+        MinBtn.Text = "+"
+    else
+        MainFrame.Size = UDim2.new(0, 260, 0, 130)
+        ToggleBtn.Visible = true
+        HelpLabel.Visible = true
+        MinBtn.Text = "-"
+    end
+end)
+
+print("⚡ [Abzzait FPS Booster V2.3] Đã kích hoạt chế độ hóa xám cực hạn toàn diện (Bản đồ + Bầu trời + Người chơi)!")
