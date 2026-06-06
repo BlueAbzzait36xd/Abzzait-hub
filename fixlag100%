@@ -1,7 +1,6 @@
-
 -- =========================================================
--- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.3 ⚡
--- BẬT USEPARTCOLOR CHO MESH - XÓA BẦU TRỜI THÀNH XÁM TOÀN DIỆN
+-- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.7 ⚡
+-- XÓA SỔ CHƯỚNG NGẠI VẬT TĨNH (TRÁNH BỊ ĐẬP VỠ) & TIÊU HỦY MẢNH VỠ MẤT NEO
 -- Phím tắt ẩn/hiện bảng điều khiển: RightControl
 -- =========================================================
 
@@ -26,6 +25,7 @@ if oldGui then
 end
 
 local connections = {}
+local playerConnections = {} 
 local fpsActive = false
 local isMinimized = false
 
@@ -36,6 +36,9 @@ local hiddenAccessories = {}
 local originalTransparencies = {}
 local originalSky = {}
 local originalAmbient = {}
+
+-- Danh sách các từ khóa chướng ngại vật mỹ thuật cần xóa sổ để tránh bị đập vỡ gây lag
+local propKeywords = {"trash", "can", "bin", "pole", "bench", "mailbox", "hydrant", "lamp", "fence", "barrel", "prop", "dustbin", "pillar"}
 
 -- Khởi tạo Anti-AFK
 local idledConn = lp.Idled:Connect(function()
@@ -89,7 +92,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -60, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "⚡ Abzzait FPS Booster V2.3"
+Title.Text = "⚡ Abzzait FPS Booster V2.7"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -142,8 +145,36 @@ local function createButton(parent, text, size, position, callback)
 end
 
 -- =========================================================
--- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.3]
+-- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.7]
 -- =========================================================
+
+-- Thuật toán kiểm tra siêu tốc không gây lag
+local function isPartOfPlayerFast(part)
+    local parent = part.Parent
+    if not parent then return false end
+    
+    if Players:GetPlayerFromCharacter(parent) then 
+        return true 
+    end
+    
+    local grandParent = parent.Parent
+    if grandParent and Players:GetPlayerFromCharacter(grandParent) then 
+        return true 
+    end
+    
+    return false
+end
+
+-- Hàm nhận diện chướng ngại vật tĩnh (Thùng rác, hòm thư, trụ điện...)
+local function isDestructibleProp(v)
+    local name = v.Name:lower()
+    for _, kw in ipairs(propKeywords) do
+        if name:find(kw) then
+            return true
+        end
+    end
+    return false
+end
 
 -- Khóa cài đặt đồ họa mượt nhất của hệ thống
 local function ForceSmoothGraphics()
@@ -170,7 +201,7 @@ local function ForceSmoothGraphics()
     end)
 end
 
--- Hóa xám cơ thể nhân vật (Sử dụng UsePartColor cho Mesh)
+-- Đơn giản hóa cơ thể nhân vật
 local function SimplifyCharacter(char)
     if not char then return end
     task.spawn(function()
@@ -196,12 +227,11 @@ local function SimplifyCharacter(char)
                     item.Color = Color3.fromRGB(120, 120, 120)
                     item.CastShadow = false 
                     
-                    -- Ép MeshPart sử dụng màu xám phẳng thay vì màu vân gốc
                     if item:IsA("MeshPart") then
                         item.UsePartColor = true
                     end
                 elseif item:IsA("SpecialMesh") then
-                    item.TextureID = "" -- Xóa vân SpecialMesh (Ghi được)
+                    item.TextureID = "" 
                 end
             end)
         end
@@ -211,7 +241,6 @@ end
 -- Biến đổi toàn bộ bầu trời thành một màu xám phẳng đồng nhất
 local function ApplyGraySky()
     pcall(function()
-        -- Lưu trữ và tạm thời cất đi các cài đặt bầu trời gốc
         originalAmbient.Ambient = Lighting.Ambient
         originalAmbient.OutdoorAmbient = Lighting.OutdoorAmbient
         
@@ -222,23 +251,63 @@ local function ApplyGraySky()
             end
         end
         
-        -- Tạo khí quyển ảo màu xám siêu đậm đặc phủ kín bầu trời (Bypass tốt hơn)
         local grayAtmos = Instance.new("Atmosphere")
         grayAtmos.Name = "GrayAtmos"
-        grayAtmos.Density = 1 -- Đậm đặc tối đa để che phủ hoàn toàn bầu trời gốc
+        grayAtmos.Density = 1 
         grayAtmos.Color = Color3.fromRGB(120, 120, 120)
         grayAtmos.Decay = Color3.fromRGB(120, 120, 120)
         grayAtmos.Glare = 0
         grayAtmos.Haze = 0
         grayAtmos.Parent = Lighting
         
-        -- Thiết lập ánh sáng môi trường đồng màu xám
         Lighting.Ambient = Color3.fromRGB(120, 120, 120)
         Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 120)
     end)
 end
 
--- Tối ưu hóa thế giới (Hóa xám toàn bộ map + Gỡ decal)
+-- Hợp nhất hàm xử lý tối ưu hóa đơn lẻ cho từng vật thể
+local function ProcessInstance(v)
+    pcall(function()
+        if not isPartOfPlayerFast(v) then
+            -- 🛠️ NÂNG CẤP: Xóa sổ các chướng ngại vật tĩnh (Thùng rác, trụ điện...) ngay khi kích hoạt
+            if isDestructibleProp(v) then
+                v:Destroy()
+                return
+            end
+            
+            -- 🛠️ NÂNG CẤP: Tiêu hủy lập tức các mảnh vỡ mất neo vật lý đang bay tự do
+            if v:IsA("BasePart") and not v:IsA("Terrain") and not v.Anchored then
+                v:Destroy()
+                return
+            end
+            
+            -- Hóa xám phẳng toàn bộ bản đồ
+            if v:IsA("BasePart") and not v:IsA("Terrain") then
+                if not originalMaterials[v] then
+                    originalMaterials[v] = v.Material
+                    originalColors[v] = v.Color
+                end
+                v.Material = Enum.Material.SmoothPlastic
+                v.Color = Color3.fromRGB(120, 120, 120) 
+                v.CastShadow = false 
+                
+                if v:IsA("MeshPart") then
+                    v.UsePartColor = true
+                end
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("SpecialMesh") then
+                v.TextureID = ""
+            elseif v:IsA("ParticleEmitter") or v:IsA("Sparkles") or v:IsA("Smoke") or v:IsA("Fire") then
+                v.Enabled = false
+            elseif v:IsA("Model") then
+                v.LevelOfDetail = Enum.ModelLevelOfDetail.Low
+            end
+        end
+    end)
+end
+
+-- Tối ưu hóa thế giới ban đầu
 local function OptimizeWorld()
     local descendants = Workspace:GetDescendants()
     local count = 0
@@ -247,37 +316,7 @@ local function OptimizeWorld()
         for _, v in ipairs(descendants) do
             if not fpsActive or _G.AbzzaitFpsSession ~= currentSession then return end
             
-            pcall(function()
-                -- 1. Hóa xám phẳng toàn bộ bản đồ và vật thể tĩnh
-                if v:IsA("BasePart") and not v:IsA("Terrain") then
-                    if not originalMaterials[v] then
-                        originalMaterials[v] = v.Material
-                        originalColors[v] = v.Color
-                    end
-                    v.Material = Enum.Material.SmoothPlastic
-                    v.Color = Color3.fromRGB(120, 120, 120) 
-                    v.CastShadow = false 
-                    
-                    -- Ép MeshPart trên bản đồ sử dụng màu xám phẳng
-                    if v:IsA("MeshPart") then
-                        v.UsePartColor = true
-                    end
-                    
-                -- 2. Làm ẩn dán tường Decal & Kết cấu
-                elseif v:IsA("Decal") or v:IsA("Texture") then
-                    v.Transparency = 1
-                elseif v:IsA("SpecialMesh") then
-                    v.TextureID = ""
-                    
-                -- 3. Tắt các hiệu ứng hạt khói lửa
-                elseif v:IsA("ParticleEmitter") or v:IsA("Sparkles") or v:IsA("Smoke") or v:IsA("Fire") then
-                    v.Enabled = false
-                    
-                -- 4. Hạ thấp độ chi tiết của Model
-                elseif v:IsA("Model") then
-                    v.LevelOfDetail = Enum.ModelLevelOfDetail.Low
-                end
-            end)
+            ProcessInstance(v)
             
             count = count + 1
             if count % 300 == 0 then
@@ -286,7 +325,6 @@ local function OptimizeWorld()
         end
     end)
     
-    -- Tắt các hiệu ứng hậu kỳ của Lighting
     for _, effect in ipairs(Lighting:GetChildren()) do
         pcall(function()
             if effect:IsA("PostEffect") or effect:IsA("Atmosphere") or effect:IsA("Clouds") then
@@ -298,7 +336,6 @@ end
 
 -- Khôi phục mọi trạng thái đồ họa cũ của game về mặc định
 local function RestoreOriginalGraphics()
-    -- Khôi phục màu sắc/vật liệu bản đồ & người chơi
     for part, mat in pairs(originalMaterials) do
         if part and part.Parent then
             pcall(function()
@@ -314,7 +351,6 @@ local function RestoreOriginalGraphics()
     originalMaterials = {}
     originalColors = {}
     
-    -- Khôi phục độ hiển thị của phụ kiện người chơi
     for handle, trans in pairs(originalTransparencies) do
         if handle and handle.Parent then
             pcall(function()
@@ -324,7 +360,6 @@ local function RestoreOriginalGraphics()
     end
     originalTransparencies = {}
     
-    -- Khôi phục quần áo người chơi
     for _, data in ipairs(hiddenAccessories) do
         if data.item and data.parent then
             pcall(function()
@@ -334,7 +369,6 @@ local function RestoreOriginalGraphics()
     end
     hiddenAccessories = {}
     
-    -- Khôi phục bầu trời gốc
     for _, data in ipairs(originalSky) do
         if data.item and data.parent then
             pcall(function()
@@ -344,7 +378,6 @@ local function RestoreOriginalGraphics()
     end
     originalSky = {}
     
-    -- Xóa bầu khí quyển ảo màu xám
     local customAtmos = Lighting:FindFirstChild("GrayAtmos")
     if customAtmos then
         pcall(function()
@@ -352,7 +385,6 @@ local function RestoreOriginalGraphics()
         end)
     end
     
-    -- Khôi phục ánh sáng môi trường mặc định
     pcall(function()
         if originalAmbient.Ambient then
             Lighting.Ambient = originalAmbient.Ambient
@@ -361,7 +393,6 @@ local function RestoreOriginalGraphics()
     end)
     originalAmbient = {}
     
-    -- Bật lại các hiệu ứng môi trường thế giới
     local descendants = Workspace:GetDescendants()
     task.spawn(function()
         for _, v in ipairs(descendants) do
@@ -391,21 +422,63 @@ local function RestoreOriginalGraphics()
 end
 
 -- =========================================================
--- [VÒNG LẶP ĐỒNG BỘ TRẠNG THÁI]
+-- [VÒNG LẶP ĐỒNG BỘ TRẠNG THÁI & CHẶN HIỆU ỨNG TSB REALTIME]
 -- =========================================================
 local loopConnection
+local worldStreamConnection 
 
 local function StartLagFix()
     ForceSmoothGraphics()
     ApplyGraySky()
     OptimizeWorld()
     
-    -- Tối ưu hóa các người chơi hiện có trong server
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= lp and p.Character then
-            SimplifyCharacter(p.Character)
+    -- 1. Hệ thống phát hiện hồi sinh (Áp dụng cho mọi người chơi)
+    local function onCharacterAdded(char)
+        if fpsActive then
+            task.wait(0.5)
+            SimplifyCharacter(char)
         end
     end
+    
+    local function onPlayerAdded(p)
+        local conn = p.CharacterAdded:Connect(onCharacterAdded)
+        table.insert(playerConnections, conn)
+        if p.Character then
+            onCharacterAdded(p.Character)
+        end
+    end
+    
+    local pAddedConn = Players.PlayerAdded:Connect(onPlayerAdded)
+    table.insert(connections, pAddedConn)
+    
+    for _, p in ipairs(Players:GetPlayers()) do
+        onPlayerAdded(p)
+    end
+    
+    -- 2. BỘ GÁC CỔNG THỜI GIAN THỰC NÂNG CẤP (Xóa Movement Blocks, Debris & Props)
+    worldStreamConnection = Workspace.DescendantAdded:Connect(function(child)
+        if not fpsActive or _G.AbzzaitFpsSession ~= currentSession then return end
+        
+        pcall(function()
+            -- A. Chặn khói bụi, sét vệt đuôi kỹ năng
+            if child:IsA("ParticleEmitter") or child:IsA("Smoke") or child:IsA("Fire") or child:IsA("Sparkles") or child:IsA("Beam") or child:IsA("Trail") then
+                child:Destroy()
+            
+            -- B. Chặn mảnh đá vỡ nát, vết nứt đất 3D kỹ năng
+            elseif child:IsA("BasePart") and (child.Name:lower():find("rock") or child.Name:lower():find("debris") or child.Name:lower():find("dust") or child.Name:lower():find("shockwave") or child.Name:lower():find("crater")) then
+                child:Destroy()
+                
+            -- C. Chặn khói bụi di chuyển dưới chân, gió lướt
+            elseif child:IsA("BasePart") and (child.Name:lower():find("movement") or child.Name:lower():find("dash") or child.Name:lower():find("run") or child.Name:lower():find("step")) then
+                child:Destroy()
+                
+            -- D. Hóa xám phẳng các chi tiết map mới tải thêm (Streaming) hoặc xóa mảnh vỡ mất neo mới sinh
+            else
+                ProcessInstance(child)
+            end
+        end)
+    end)
+    table.insert(connections, worldStreamConnection)
     
     -- Vòng lặp khóa đồ họa mượt liên tục
     loopConnection = RunService.Heartbeat:Connect(function()
@@ -414,17 +487,6 @@ local function StartLagFix()
         
         ForceSmoothGraphics()
     end)
-    
-    -- Tự động đơn giản hóa những người chơi mới hồi sinh
-    local charAddedConn = Players.PlayerAdded:Connect(function(p)
-        p.CharacterAdded:Connect(function(char)
-            if fpsActive then
-                task.wait(1)
-                SimplifyCharacter(char)
-            end
-        end)
-    end)
-    table.insert(connections, charAddedConn)
 end
 
 local function StopLagFix()
@@ -432,6 +494,18 @@ local function StopLagFix()
         loopConnection:Disconnect()
         loopConnection = nil
     end
+    if worldStreamConnection then
+        worldStreamConnection:Disconnect()
+        worldStreamConnection = nil
+    end
+    -- Ngắt toàn bộ lắng nghe hồi sinh
+    for _, conn in ipairs(playerConnections) do
+        if conn then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    playerConnections = {}
+    
     RestoreOriginalGraphics()
 end
 
@@ -499,4 +573,4 @@ MinBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("⚡ [Abzzait FPS Booster V2.3] Đã kích hoạt chế độ hóa xám cực hạn toàn diện (Bản đồ + Bầu trời + Người chơi)!")
+print("⚡ [Abzzait FPS Booster V2.7] Đã kích hoạt hệ thống dọn dẹp chướng ngại vật và mảnh vỡ vật lý!")
