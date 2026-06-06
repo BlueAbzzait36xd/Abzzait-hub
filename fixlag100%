@@ -1,6 +1,6 @@
 -- =========================================================
--- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.10 ⚡
--- HỢP NHẤT THUẬT TOÁN DỌN DẸP THƯ MỤC THROWN TỪ GITHUB CHUYÊN SÂU TSB
+-- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.11 ⚡
+-- HÓA XÁM TOÀN DIỆN - TÍCH HỢP HIGHLIGHT PHÁT QUANG VÀNG FREE FIRE (XUYÊN TƯỜNG)
 -- Phím tắt ẩn/hiện bảng điều khiển: RightControl
 -- =========================================================
 
@@ -43,9 +43,7 @@ local originalFog = {}
 -- Danh sách các từ khóa chướng ngại vật mỹ thuật cần xóa sổ để tránh bị đập vỡ gây lag
 local propKeywords = {"trash", "can", "bin", "pole", "bench", "mailbox", "hydrant", "lamp", "fence", "barrel", "prop", "dustbin", "pillar"}
 
--- =========================================================
--- [DANH SÁCH TRẮNG TỪ GITHUB CHỐNG XÓA CHIÊU THỨC QUAN TRỌNG]
--- =========================================================
+-- Danh sách trắng từ GitHub chống xóa chiêu thức quan trọng
 local GarbageWhitelist = {
     Part = {
         "Ring", "Debris2g", "Projectile", "TornadoMain", "Spiral",
@@ -111,7 +109,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -60, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "⚡ Abzzait FPS Booster V2.10"
+Title.Text = "⚡ Abzzait FPS Booster V2.11"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -164,7 +162,7 @@ local function createButton(parent, text, size, position, callback)
 end
 
 -- =========================================================
--- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.10]
+-- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.11]
 -- =========================================================
 
 -- Thuật toán kiểm tra siêu tốc không gây lag
@@ -195,7 +193,7 @@ local function isDestructibleProp(v)
     return false
 end
 
--- Khóa cài đặt đồ họa mượt nhất của hệ thống (Bảo vệ bằng pcall)
+-- Khóa cài đặt đồ họa mượt nhất của hệ thống
 local function ForceSmoothGraphics()
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
@@ -223,10 +221,26 @@ local function ForceSmoothGraphics()
     end)
 end
 
--- Đơn giản hóa cơ thể nhân vật (Sử dụng UsePartColor cho Mesh)
+-- Đơn giản hóa cơ thể nhân vật & 🛠️ TÍCH HỢP HIGHLIGHT VÀNG FREE FIRE
 local function SimplifyCharacter(char)
     if not char then return end
     task.spawn(function()
+        -- A. Tạo luồng phát quang Highlight màu vàng rực xuyên tường như Free Fire
+        local oldHl = char:FindFirstChild("FreeFireHighlight")
+        if oldHl then 
+            oldHl:Destroy() 
+        end
+        
+        local hl = Instance.new("Highlight")
+        hl.Name = "FreeFireHighlight"
+        hl.FillColor = Color3.fromRGB(255, 255, 0) -- Thân phủ vàng mờ
+        hl.FillTransparency = 0.6 
+        hl.OutlineColor = Color3.fromRGB(255, 215, 0) -- Viền phát quang vàng sáng bóng
+        hl.OutlineTransparency = 0 -- Hiện rõ viền
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- Nhìn xuyên qua mọi bức tường/chướng ngại vật
+        hl.Parent = char
+        
+        -- B. Tiến hành dọn dẹp các chi tiết nặng của cơ thể nhân vật
         for _, item in ipairs(char:GetDescendants()) do
             pcall(function()
                 if item:IsA("Accessory") then
@@ -253,9 +267,6 @@ local function SimplifyCharacter(char)
                         item.UsePartColor = true
                     end
                 elseif item:IsA("SpecialMesh") then
-                    if not originalMeshTextures[item] then
-                        originalMeshTextures[item] = item.TextureId
-                    end
                     item.TextureId = "" 
                 end
             end)
@@ -427,6 +438,18 @@ local function RestoreOriginalGraphics()
     end
     hiddenAccessories = {}
     
+    -- 🛠️ KHÔI PHỤC: Xóa bỏ Highlight phát quang vàng của người chơi
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.Character then
+            local hl = p.Character:FindFirstChild("FreeFireHighlight")
+            if hl then
+                pcall(function()
+                    hl:Destroy()
+                end)
+            end
+        end
+    end
+    
     -- Khôi phục bầu trời gốc
     for _, data in ipairs(originalSky) do
         if data.item and data.parent then
@@ -486,15 +509,15 @@ local function RestoreOriginalGraphics()
     end)
 end
 
--- 🛠️ THUẬT TOÁN ĐỆ QUY TỰ ĐỘNG TIÊU HỦY RÁC TRÊN GITHUB (Duyệt qua Thrown của TSB)
+-- Thuật toán đệ quy tự động dọn rác Thrown của TSB
 local function eat(obj)
     for _, child in ipairs(obj:GetChildren()) do
         pcall(function()
             if child:IsA("Part") and not table.find(GarbageWhitelist.Part, child.Name)
                and not (child.Name == "Part" and child.Size == Vector3.new(4, 4, 4)) then
-                child:Destroy() -- Tiêu hủy rác vật lý đơn lẻ
+                child:Destroy() 
             elseif child:IsA("Model") and not table.find(GarbageWhitelist.Model, child.Name) then
-                eat(child) -- Quét đệ quy sâu vào trong Model
+                eat(child) 
             end
         end)
     end
@@ -512,7 +535,7 @@ local function StartLagFix()
     ApplyGraySky()
     OptimizeWorld()
     
-    -- 1. Hệ thống phát hiện hồi sinh (Áp dụng cho cả bạn và mục tiêu)
+    -- 1. Hệ thống phát hiện hồi sinh (Áp dụng cho TOÀN BỘ người chơi bao gồm cả BẠN)
     local function onCharacterAdded(char)
         if fpsActive then
             task.wait(0.5)
@@ -531,11 +554,12 @@ local function StartLagFix()
     local pAddedConn = Players.PlayerAdded:Connect(onPlayerAdded)
     table.insert(connections, pAddedConn)
     
+    -- Kích hoạt ngay lập tức cho bạn và tất cả người chơi cũ trong server
     for _, p in ipairs(Players:GetPlayers()) do
         onPlayerAdded(p)
     end
     
-    -- 2. BỘ GÁC CỔNG THỜI GIAN THỰC NÂNG CẤP (Xóa Movement Blocks, Debris & Props)
+    -- 2. BỘ GÁC CỔNG THỜI GIAN THỰC NÂNG CẤP (Xóa Movement Blocks, Debris, Props & Đá chiêu thức)
     worldStreamConnection = Workspace.DescendantAdded:Connect(function(child)
         if not fpsActive or _G.AbzzaitFpsSession ~= currentSession then return end
         
@@ -543,14 +567,27 @@ local function StartLagFix()
             if isPartOfPlayerFast(child) then return end
             if child:IsDescendantOf(Gui) then return end
             
-            -- Chặn khói bụi di chuyển dưới chân, gió lướt của người chơi di chuyển
-            if child:IsA("BasePart") and (child.Name:lower():find("movement") or child.Name:lower():find("dash") or child.Name:lower():find("run") or child.Name:lower():find("step")) then
+            -- A. Chống đá chiêu thức mọc lên: Tiêu diệt ngay lập tức bất kỳ BasePart/Khối gạch nào mọc lên động
+            if child:IsA("BasePart") then
                 child:Destroy()
                 return
             end
             
-            -- Tự động hóa xám phẳng các chi tiết map mới tải thêm (Streaming) hoặc ẩn BillboardGui nổi
-            if child:IsA("BillboardGui") or child:IsA("SurfaceGui") then
+            -- B. Chặn các hạt khói bụi, sét vệt đuôi kỹ năng
+            if child:IsA("ParticleEmitter") or child:IsA("Smoke") or child:IsA("Fire") or child:IsA("Sparkles") or child:IsA("Beam") or child:IsA("Trail") then
+                child:Destroy()
+                return
+            
+            -- C. Chặn mảnh đá vỡ nát, vết nứt đất kỹ năng dưới dạng Model/Folder
+            elseif child:IsA("Model") or child:IsA("Folder") then
+                local name = child.Name:lower()
+                if name:find("effect") or name:find("vfx") or name:find("fx") or name:find("skill") or name:find("rock") or name:find("debris") or name:find("crater") or name:find("impact") then
+                    task.wait() 
+                    child:Destroy()
+                    return
+                end
+            -- D. Tự động tắt bảng tên 3D hoặc SurfaceGui mới xuất hiện (Weakest Dummy)
+            elseif child:IsA("BillboardGui") or child:IsA("SurfaceGui") then
                 child.Enabled = false
             else
                 ProcessInstance(child)
@@ -559,7 +596,7 @@ local function StartLagFix()
     end)
     table.insert(connections, worldStreamConnection)
     
-    -- 3. 🛠️ ĐỒNG BỘ BỘ DỌN RÁC THƯ MỤC THROWN TỪ GITHUB (Tối ưu hóa 14ms một lần)
+    -- 3. ĐỒNG BỘ BỘ DỌN RÁC THƯ MỤC THROWN TỪ GITHUB (Tối ưu hóa 14ms một lần)
     local ThrownFolder = Workspace:FindFirstChild("Thrown")
     local LastNom = 0
     
@@ -568,7 +605,6 @@ local function StartLagFix()
         if not fpsActive then return end
         
         local Now = os.clock()
-        -- Quét đệ quy dọn rác chiêu thức với tần số 14ms (Tối ưu hóa cực hạn)
         if Now - LastNom >= 0.014285714285714 and ThrownFolder then
             LastNom = Now
             eat(ThrownFolder)
@@ -672,4 +708,4 @@ MinBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("⚡ [Abzzait FPS Booster V2.10] Đã hợp nhất hoàn hảo bộ dọn rác đệ quy Thrown TSB!")
+print("⚡ [Abzzait FPS Booster V2.11] Khởi chạy hoàn tất hệ thống tối ưu hóa và Highlight phát quang!")
