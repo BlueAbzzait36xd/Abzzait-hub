@@ -1,6 +1,6 @@
 -- =========================================================
--- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.11 ⚡
--- HÓA XÁM TOÀN DIỆN - TÍCH HỢP HIGHLIGHT PHÁT QUANG VÀNG FREE FIRE (XUYÊN TƯỜNG)
+-- ⚡ ABZZAIT STANDALONE FPS BOOSTER / FIX LAG SYSTEM - V2.12 ⚡
+-- GIỮ NGUYÊN MÀU NHÂN VẬT - ẨN PHỤ KIỆN (TÓC, MŨ, BALO...) - XÓA HIGHLIGHT
 -- Phím tắt ẩn/hiện bảng điều khiển: RightControl
 -- =========================================================
 
@@ -109,7 +109,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -60, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "⚡ Abzzait FPS Booster V2.11"
+Title.Text = "⚡ Abzzait FPS Booster V2.12"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -162,7 +162,7 @@ local function createButton(parent, text, size, position, callback)
 end
 
 -- =========================================================
--- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.11]
+-- [CORE LOGIC - HỆ THỐNG FIX LAG CỰC HẠN V2.12]
 -- =========================================================
 
 -- Thuật toán kiểm tra siêu tốc không gây lag
@@ -221,53 +221,16 @@ local function ForceSmoothGraphics()
     end)
 end
 
--- Đơn giản hóa cơ thể nhân vật & 🛠️ TÍCH HỢP HIGHLIGHT VÀNG FREE FIRE
+-- 🛠️ TỐI ƯU HÓA: Chỉ làm ẩn phụ kiện rườm rà (mũ, tóc, balo...), giữ nguyên mô hình nhân vật gốc đầy đủ màu sắc
 local function SimplifyCharacter(char)
     if not char then return end
     task.spawn(function()
-        -- A. Tạo luồng phát quang Highlight màu vàng rực xuyên tường như Free Fire
-        local oldHl = char:FindFirstChild("FreeFireHighlight")
-        if oldHl then 
-            oldHl:Destroy() 
-        end
-        
-        local hl = Instance.new("Highlight")
-        hl.Name = "FreeFireHighlight"
-        hl.FillColor = Color3.fromRGB(255, 255, 0) -- Thân phủ vàng mờ
-        hl.FillTransparency = 0.6 
-        hl.OutlineColor = Color3.fromRGB(255, 215, 0) -- Viền phát quang vàng sáng bóng
-        hl.OutlineTransparency = 0 -- Hiện rõ viền
-        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- Nhìn xuyên qua mọi bức tường/chướng ngại vật
-        hl.Parent = char
-        
-        -- B. Tiến hành dọn dẹp các chi tiết nặng của cơ thể nhân vật
-        for _, item in ipairs(char:GetDescendants()) do
+        for _, item in ipairs(char:GetChildren()) do
             pcall(function()
                 if item:IsA("Accessory") then
-                    local handle = item:FindFirstChild("Handle") or item
-                    if handle and handle:IsA("BasePart") then
-                        if not originalTransparencies[handle] then
-                            originalTransparencies[handle] = handle.Transparency
-                        end
-                        handle.Transparency = 1 
-                    end
-                elseif item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
+                    -- Lưu trữ phụ kiện ẩn để khôi phục khi tắt
                     table.insert(hiddenAccessories, {item = item, parent = char})
-                    item.Parent = nil 
-                elseif item:IsA("BasePart") then
-                    if not originalMaterials[item] then
-                        originalMaterials[item] = item.Material
-                        originalColors[item] = item.Color
-                    end
-                    item.Material = Enum.Material.SmoothPlastic
-                    item.Color = Color3.fromRGB(120, 120, 120)
-                    item.CastShadow = false 
-                    
-                    if item:IsA("MeshPart") then
-                        item.UsePartColor = true
-                    end
-                elseif item:IsA("SpecialMesh") then
-                    item.TextureId = "" 
+                    item.Parent = nil -- Ẩn hoàn toàn phụ kiện giải phóng GPU
                 end
             end)
         end
@@ -302,7 +265,7 @@ local function ApplyGraySky()
     end)
 end
 
--- Hợp nhất hàm xử lý tối ưu hóa đơn lẻ cho từng vật thể
+-- Hợp nhất hàm xử lý tối ưu hóa đơn lẻ cho từng vật thể bản đồ
 local function ProcessInstance(v)
     pcall(function()
         if not isPartOfPlayerFast(v) then
@@ -382,7 +345,7 @@ end
 
 -- Khôi phục mọi trạng thái đồ họa cũ của game về mặc định
 local function RestoreOriginalGraphics()
-    -- Khôi phục màu sắc/vật liệu bản đồ & người chơi
+    -- Khôi phục màu sắc/vật liệu bản đồ
     for part, mat in pairs(originalMaterials) do
         if part and part.Parent then
             pcall(function()
@@ -418,17 +381,7 @@ local function RestoreOriginalGraphics()
     end
     originalImages = {}
     
-    -- Khôi phục độ hiển thị của phụ kiện người chơi
-    for handle, trans in pairs(originalTransparencies) do
-        if handle and handle.Parent then
-            pcall(function()
-                handle.Transparency = trans
-            end)
-        end
-    end
-    originalTransparencies = {}
-    
-    -- Khôi phục quần áo người chơi
+    -- Khôi phục lại quần áo & phụ kiện người chơi
     for _, data in ipairs(hiddenAccessories) do
         if data.item and data.parent then
             pcall(function()
@@ -437,18 +390,6 @@ local function RestoreOriginalGraphics()
         end
     end
     hiddenAccessories = {}
-    
-    -- 🛠️ KHÔI PHỤC: Xóa bỏ Highlight phát quang vàng của người chơi
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Character then
-            local hl = p.Character:FindFirstChild("FreeFireHighlight")
-            if hl then
-                pcall(function()
-                    hl:Destroy()
-                end)
-            end
-        end
-    end
     
     -- Khôi phục bầu trời gốc
     for _, data in ipairs(originalSky) do
@@ -564,7 +505,16 @@ local function StartLagFix()
         if not fpsActive or _G.AbzzaitFpsSession ~= currentSession then return end
         
         pcall(function()
-            if isPartOfPlayerFast(child) then return end
+            -- 🛠️ TỐI ƯU: Nếu một phụ kiện mới được thêm vào nhân vật người chơi, lập tức làm ẩn nó
+            if isPartOfPlayerFast(child) then 
+                local char = child:FindFirstAncestorOfClass("Model")
+                if char and char:FindFirstChildOfClass("Humanoid") then
+                    task.spawn(function()
+                        SimplifyCharacter(char)
+                    end)
+                end
+                return 
+            end
             if child:IsDescendantOf(Gui) then return end
             
             -- A. Chống đá chiêu thức mọc lên: Tiêu diệt ngay lập tức bất kỳ BasePart/Khối gạch nào mọc lên động
@@ -708,4 +658,4 @@ MinBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-print("⚡ [Abzzait FPS Booster V2.11] Khởi chạy hoàn tất hệ thống tối ưu hóa và Highlight phát quang!")
+print("⚡ [Abzzait FPS Booster V2.12] Khởi chạy hoàn tất hệ thống tối ưu hóa và lọc phụ kiện người chơi!")
