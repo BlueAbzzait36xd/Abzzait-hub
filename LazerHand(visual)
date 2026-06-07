@@ -1,0 +1,401 @@
+-- =========================================================
+-- ⚡ ABZZAIT STANDALONE LAZER HAND SYSTEM - V2.0 ⚡
+-- HỖ TRỢ PHÁ HỦY ĐẤT - TIA LAZER TO 0.35 - CHẾ ĐỘ TỰ ĐỘNG ĐUỔI CHUỘT (AUTO)
+-- Phím tắt ẩn/hiện giao diện chính: RightControl
+-- =========================================================
+
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
+local lp = Players.LocalPlayer
+
+-- Khởi tạo mã phiên duy nhất
+local currentSession = tostring(math.random(100000, 999999)) .. "_" .. tostring(os.clock())
+_G.AbzzaitLazerSession = currentSession
+
+-- Tự động dọn dẹp giao diện cũ trùng tên nếu có
+local oldGui = lp.PlayerGui:FindFirstChild("Abzzait_Lazer_Hand_GUI")
+if oldGui then
+    pcall(function() 
+        oldGui:Destroy() 
+    end)
+end
+
+local connections = {}
+local lazerActive = false
+local explosionMode = false
+local isClicking = false -- Trạng thái nhấn chuột
+local shootMode = "Click" -- Chế độ mặc định: "Click" (Nhấp giữ) hoặc "Auto" (Tự động đuổi)
+local isMinimized = false
+
+-- Cấu hình màu sắc Laser
+local lazerColor = Color3.fromRGB(255, 0, 50)
+local colorIndex = 1
+local colorList = {
+    {name = "ĐỎ NEON", color = Color3.fromRGB(255, 0, 50)},
+    {name = "XANH DƯƠNG", color = Color3.fromRGB(0, 150, 255)},
+    {name = "XANH LÁ", color = Color3.fromRGB(0, 255, 100)},
+    {name = "VÀNG SÁNG", color = Color3.fromRGB(255, 200, 0)},
+    {name = "TÍM NEON", color = Color3.fromRGB(180, 0, 255)}
+}
+
+-- Khởi tạo Anti-AFK
+local idledConn = lp.Idled:Connect(function()
+    if _G.AbzzaitLazerSession ~= currentSession then return end
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new(0, 0))
+end)
+table.insert(connections, idledConn)
+
+-- Khởi tạo GUI chính (Mở rộng chiều cao lên 200 để chứa đủ nút Chế Độ Bắn mới)
+local Gui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
+Gui.Name = "Abzzait_Lazer_Hand_GUI"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame", Gui)
+MainFrame.Size = UDim2.new(0, 260, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -130, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
+
+-- Hệ thống kéo thả GUI
+local drag, start, pos
+MainFrame.InputBegan:Connect(function(i)
+    if _G.AbzzaitLazerSession ~= currentSession then return end
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drag = true
+        start = i.Position
+        pos = MainFrame.Position
+    end
+end)
+
+local dragChangedConn = UIS.InputChanged:Connect(function(i)
+    if _G.AbzzaitLazerSession ~= currentSession then return end
+    if drag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local delta = i.Position - start
+        MainFrame.Position = UDim2.new(pos.X.Scale, pos.X.Offset + delta.X, pos.Y.Scale, pos.Y.Offset + delta.Y)
+    end
+end)
+table.insert(connections, dragChangedConn)
+
+local dragEndedConn = UIS.InputEnded:Connect(function() 
+    drag = false 
+end)
+table.insert(connections, dragEndedConn)
+
+-- Tiêu đề
+local Title = Instance.new("TextLabel", MainFrame)
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, -60, 0, 30)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = "⚡ Abzzait Lazer Hand V2.0"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 11
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Nút thu gọn [-]
+local MinBtn = Instance.new("TextButton", MainFrame)
+MinBtn.Size = UDim2.new(0, 20, 0, 20)
+MinBtn.Position = UDim2.new(1, -50, 0, 5)
+MinBtn.BackgroundTransparency = 1
+MinBtn.Text = "-"
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 14
+MinBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
+-- Nút tắt hoàn toàn [X]
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+CloseBtn.Position = UDim2.new(1, -25, 0, 5)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "X"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 12
+CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+
+-- Phím tắt hiển thị bảng (RightControl)
+local inputBeganConn = UIS.InputBegan:Connect(function(input, processed)
+    if _G.AbzzaitLazerSession ~= currentSession then return end
+    if not processed then
+        if input.KeyCode == Enum.KeyCode.RightControl then
+            MainFrame.Visible = not MainFrame.Visible
+        end
+    end
+end)
+table.insert(connections, inputBeganConn)
+
+-- Hàm tạo nút bấm nhanh gọn
+local function createButton(parent, text, size, position, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = size
+    btn.Position = position
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- =========================================================
+-- [CORE LOGIC - HỆ THỐNG LAZER VÀ PHÁ HỦY ĐẤT]
+-- =========================================================
+local LazerPart = nil
+local HitAttachment = nil
+local SelectionBox = nil
+
+-- Cập nhật tọa độ, kích thước to 0.35 và đào hố vật lý
+local function UpdateLazerGeometry()
+    local char = lp.Character
+    local hand = char and (char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm"))
+    local mouse = lp:GetMouse()
+    
+    -- Điều kiện bắn: Phải bật Lazer và (Chế độ Auto hoạt động HOẶC chế độ Click đang nhấn giữ)
+    local shouldShoot = lazerActive and (shootMode == "Auto" or (shootMode == "Click" and isClicking))
+    
+    if not hand or not mouse or not shouldShoot then
+        if LazerPart then LazerPart.Transparency = 1 end
+        if SelectionBox then SelectionBox.Visible = false end
+        if HitAttachment then HitAttachment.Parent = nil end
+        return
+    end
+    
+    local startPos = hand.Position
+    local targetPos = mouse.Hit.Position
+    local distance = (targetPos - startPos).Magnitude
+    
+    -- Giới hạn khoảng cách tối đa
+    if distance > 1000 then
+        distance = 1000
+        targetPos = startPos + (mouse.Hit.LookVector * 1000)
+    end
+    
+    -- Khởi tạo tia Lazer cực dày (0.35)
+    if not LazerPart or not LazerPart.Parent then
+        LazerPart = Instance.new("Part")
+        LazerPart.Name = "AbzzaitLazerBeam"
+        LazerPart.Anchored = true
+        LazerPart.CanCollide = false
+        LazerPart.Material = Enum.Material.Neon
+        LazerPart.Size = Vector3.new(0.35, 0.35, distance) -- TĂNG ĐỘ DÀY LÊN 0.35
+        LazerPart.Parent = Workspace
+        
+        SelectionBox = Instance.new("BoxHandleAdornment", LazerPart)
+        SelectionBox.Size = LazerPart.Size
+        SelectionBox.AlwaysOnTop = true
+        SelectionBox.Transparency = 0.4
+        SelectionBox.Adornee = LazerPart
+    end
+    
+    -- Cập nhật thông số tia
+    LazerPart.Transparency = 0
+    LazerPart.Size = Vector3.new(0.35, 0.35, distance)
+    LazerPart.CFrame = CFrame.lookAt(startPos, targetPos) * CFrame.new(0, 0, -distance/2)
+    LazerPart.Color = lazerColor
+    
+    if SelectionBox then
+        SelectionBox.Visible = true
+        SelectionBox.Size = LazerPart.Size
+        SelectionBox.Color3 = lazerColor
+    end
+    
+    -- 🛠️ NÂNG CẤP: KHỬ ĐỊA HÌNH - ĐÀO HỐ PHÁ HỦY ĐẤT REALTIME
+    pcall(function()
+        local terrain = Workspace:FindFirstChildOfClass("Terrain") or Workspace.Terrain
+        if terrain then
+            -- Thay thế vật liệu đất tại điểm chạm thành không khí (Air) để tạo hố tròn (bán kính 4.5 studs)
+            terrain:FillBall(targetPos, 4.5, Enum.Material.Air)
+        end
+    end)
+    
+    -- Kích hoạt hạt tia lửa phát sáng
+    if not HitAttachment or not HitAttachment.Parent then
+        HitAttachment = Instance.new("Attachment", Workspace.Terrain)
+        
+        local pe = Instance.new("ParticleEmitter", HitAttachment)
+        pe.Texture = "rbxassetid://241594157" 
+        pe.Rate = 140
+        pe.Lifetime = NumberRange.new(0.2, 0.6)
+        pe.Speed = NumberRange.new(4, 12)
+        pe.SpreadAngle = Vector2.new(0, 360)
+        pe.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0)})
+    end
+    
+    HitAttachment.Position = targetPos
+    local emitter = HitAttachment:FindFirstChildOfClass("ParticleEmitter")
+    if emitter then
+        emitter.Color = ColorSequence.new(lazerColor)
+    end
+    
+    -- Vụ nổ liên tục nhẹ nếu đang bật Explosion Mode (Kèm âm thanh sinh động)
+    if explosionMode and math.random(1, 4) == 1 then
+        pcall(function()
+            local exp = Instance.new("Explosion")
+            exp.Position = targetPos
+            exp.BlastRadius = 10
+            exp.BlastPressure = 300000
+            exp.Parent = Workspace
+        end)
+    end
+end
+
+-- Vòng lặp Render cập nhật vẽ tia
+local renderConnection
+local function StartRenderLoop()
+    if not renderConnection then
+        renderConnection = RunService.RenderStepped:Connect(function()
+            if _G.AbzzaitLazerSession ~= currentSession then return end
+            UpdateLazerGeometry()
+        end)
+    end
+end
+
+local function StopRenderLoop()
+    isClicking = false
+    if renderConnection then
+        renderConnection:Disconnect()
+        renderConnection = nil
+    end
+    if LazerPart then LazerPart:Destroy() LazerPart = nil end
+    if SelectionBox then SelectionBox:Destroy() SelectionBox = nil end
+    if HitAttachment then HitAttachment:Destroy() HitAttachment = nil end
+end
+
+-- Ghi nhận trạng thái Click chuột trái
+local mouse = lp:GetMouse()
+local mouseDownConn = mouse.Button1Down:Connect(function()
+    isClicking = true
+end)
+table.insert(connections, mouseDownConn)
+
+local mouseUpConn = mouse.Button1Up:Connect(function()
+    isClicking = false
+end)
+table.insert(connections, mouseUpConn)
+
+-- Ngắt khi nhân vật reset
+local charAddedConn = lp.CharacterAdded:Connect(StopRenderLoop)
+table.insert(connections, charAddedConn)
+
+-- =========================================================
+-- [GIAO DIỆN ĐIỀU KHIỂN CHI TIẾT]
+-- =========================================================
+
+local ToggleBtn
+local function ToggleLazer()
+    lazerActive = not lazerActive
+    if lazerActive then
+        ToggleBtn.Text = "Lazer Hand: ACTIVE ⚡"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
+        StartRenderLoop() -- Khởi chạy vòng lặp dựng hình
+    else
+        StopRenderLoop()
+        ToggleBtn.Text = "Lazer Hand: OFF"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end
+end
+
+-- 1. Nút Bật / Tắt Lazer chính
+ToggleBtn = createButton(MainFrame, "Lazer Hand: OFF", UDim2.new(1, -20, 0, 30), UDim2.new(0, 10, 0, 35), ToggleLazer)
+
+-- 2. 🛠️ NÚT CHUYỂN CHẾ ĐỘ BẮN (AUTO HOẶC CLICK)
+local ModeBtn
+ModeBtn = createButton(MainFrame, "Chế Độ Bắn: Nhấn Giữ Chuột", UDim2.new(1, -20, 0, 24), UDim2.new(0, 10, 0, 70), function()
+    if shootMode == "Click" then
+        shootMode = "Auto"
+        ModeBtn.Text = "Chế Độ Bắn: Tự Động Đuổi 🔄"
+        ModeBtn.TextColor3 = Color3.fromRGB(30, 160, 30)
+    else
+        shootMode = "Click"
+        ModeBtn.Text = "Chế Độ Bắn: Nhấn Giữ Chuột"
+        ModeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+end)
+
+-- 3. Nút bấm xoay vòng Đổi màu sắc Lazer
+local ColorBtn
+ColorBtn = createButton(MainFrame, "Màu Lazer: ĐỎ NEON", UDim2.new(1, -20, 0, 24), UDim2.new(0, 10, 0, 99), function()
+    colorIndex = colorIndex + 1
+    if colorIndex > #colorList then
+        colorIndex = 1
+    end
+    lazerColor = colorList[colorIndex].color
+    ColorBtn.Text = "Màu Lazer: " .. colorList[colorIndex].name
+    ColorBtn.TextColor3 = lazerColor
+end)
+ColorBtn.TextColor3 = lazerColor
+
+-- 4. Nút bấm Bật / Tắt chế độ Nổ tung vật lý (Explosion Mode)
+local ExpBtn
+ExpBtn = createButton(MainFrame, "Explosion Mode: OFF", UDim2.new(1, -20, 0, 24), UDim2.new(0, 10, 0, 128), function()
+    explosionMode = not explosionMode
+    if explosionMode then
+        ExpBtn.Text = "Explosion Mode: ACTIVE 💥"
+        ExpBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+    else
+        ExpBtn.Text = "Explosion Mode: OFF"
+        ExpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end
+end)
+
+-- Hướng dẫn phím tắt chân trang
+local HelpLabel = Instance.new("TextLabel", MainFrame)
+HelpLabel.Size = UDim2.new(1, -20, 0, 20)
+HelpLabel.Position = UDim2.new(0, 10, 1, -25)
+HelpLabel.BackgroundTransparency = 1
+HelpLabel.Text = "Ẩn hiện bảng: RightControl | Hỗ trợ R15 & R6"
+HelpLabel.Font = Enum.Font.GothamBold
+HelpLabel.TextSize = 8
+HelpLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+HelpLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+-- =========================================================
+-- [DỌN DẸP SẠCH SẼ KHI BẤM NÚT ĐÓNG (X)]
+-- =========================================================
+CloseBtn.MouseButton1Click:Connect(function() 
+    lazerActive = false
+    StopRenderLoop()
+    _G.AbzzaitLazerSession = nil 
+    
+    -- Ngắt toàn bộ kết nối chạy ẩn
+    for _, conn in ipairs(connections) do
+        if conn then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    
+    Gui:Destroy()
+end)
+
+-- Thu gọn / Mở rộng bảng bằng nút [-]
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MainFrame.Size = UDim2.new(0, 260, 0, 30)
+        ToggleBtn.Visible = false
+        ModeBtn.Visible = false
+        ColorBtn.Visible = false
+        ExpBtn.Visible = false
+        HelpLabel.Visible = false
+        MinBtn.Text = "+"
+    else
+        MainFrame.Size = UDim2.new(0, 260, 0, 200)
+        ToggleBtn.Visible = true
+        ModeBtn.Visible = true
+        ColorBtn.Visible = true
+        ExpBtn.Visible = true
+        HelpLabel.Visible = true
+        MinBtn.Text = "-"
+    end
+end)
+
+print("⚡ [Abzzait Lazer Hand V2.0] Đã nâng cấp thành công hệ thống phá địa hình và bắn tự động!")
