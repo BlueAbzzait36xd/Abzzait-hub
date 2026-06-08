@@ -1,6 +1,8 @@
 -- =========================================================
 -- 🔥 ABZZAIT HUB VER[PHIÊN BẢN 1.0NEW] 🔥
--- Đầy đủ hệ thống các Tab - Tích hợp 10 Pos Song Song & Dropdown Mode Player
+-- Đầy đủ hệ thống các Tab - Tích hợp Bhop, Dash, Lazer Hand & FixLag 100%
+-- KHỞI CHẠY TRỰC TIẾP - ĐÃ GỠ BỎ HOÀN TOÀN MÀN HÌNH CHỜ/XÁC NHẬN
+-- Phím tắt ẩn/hiện giao diện chính: [-] hoặc RightControl
 -- =========================================================
 
 local UIS = game:GetService("UserInputService")
@@ -43,13 +45,13 @@ Gui.Name = "Abzzait_Hub_V1_New"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Khung giao diện chính (540x360)
 local MainFrame = Instance.new("Frame", Gui)
 MainFrame.Size = UDim2.new(0, 540, 0, 360)
 MainFrame.Position = UDim2.new(0.5, -270, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
+MainFrame.Visible = true -- Đã sửa: Hiện trực tiếp bảng điều khiển ngay khi chạy script
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
 
 -- Hệ thống kéo thả bảng điều khiển
@@ -163,7 +165,7 @@ for i = 1, 6 do
     btn.Text = tabNames[i]
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 9
-    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextColor3 = (i == 1) and Color3.fromRGB(255, 165, 0) or Color3.new(1, 1, 1)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
     
     local tFrame = Instance.new("Frame", ContentContainer)
@@ -198,7 +200,7 @@ local function createButton(parent, text, size, position, callback)
 end
 
 -- =========================================================
--- [TAB 1 - HOME (BỐ CỤC ĐỐI XỨNG CHUẨN)]
+-- [TAB 1 - HOME (CHIA CỘT ĐỐI XỨNG CHUẨN)]
 -- =========================================================
 local HomeTab = TabFrames[1]
 
@@ -219,74 +221,74 @@ LeftHeader.TextXAlignment = Enum.TextXAlignment.Left
 -- 1. Speed Hack
 local walkSpeedValue = 16
 local SpeedFrame = Instance.new("Frame", LeftCol)
-SpeedFrame.Size = UDim2.new(1, 0, 0, 22)
+SpeedFrame.Size = UDim2.new(1, 0, 0, 20)
 SpeedFrame.Position = UDim2.new(0, 0, 0, 25)
 SpeedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", SpeedFrame).CornerRadius = UDim.new(0, 4)
 
 local SpeedLabel = Instance.new("TextLabel", SpeedFrame)
-SpeedLabel.Size = UDim2.new(1, -60, 1, 0)
+SpeedLabel.Size = UDim2.new(1, -52, 1, 0)
 SpeedLabel.Position = UDim2.new(0, 8, 0, 0)
 SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Speed Hack: " .. walkSpeedValue
+SpeedLabel.Text = "Speed: " .. walkSpeedValue
 SpeedLabel.Font = Enum.Font.GothamBold
-SpeedLabel.TextSize = 9
+SpeedLabel.TextSize = 8
 SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-createButton(SpeedFrame, "-", UDim2.new(0, 20, 0, 16), UDim2.new(1, -45, 0, 3), function()
+createButton(SpeedFrame, "-", UDim2.new(0, 18, 0, 14), UDim2.new(1, -38, 0, 3), function()
     if walkSpeedValue > 16 then
         walkSpeedValue = walkSpeedValue - 5
         if walkSpeedValue < 16 then walkSpeedValue = 16 end
-        SpeedLabel.Text = "Speed Hack: " .. walkSpeedValue
+        SpeedLabel.Text = "Speed: " .. walkSpeedValue
     end
 end)
 
-createButton(SpeedFrame, "+", UDim2.new(0, 20, 0, 16), UDim2.new(1, -23, 0, 3), function()
+createButton(SpeedFrame, "+", UDim2.new(0, 18, 0, 14), UDim2.new(1, -20, 0, 3), function()
     if walkSpeedValue < 400 then
         walkSpeedValue = walkSpeedValue + 5
-        SpeedLabel.Text = "Speed Hack: " .. walkSpeedValue
+        SpeedLabel.Text = "Speed: " .. walkSpeedValue
     end
 end)
 
 -- 2. Nhảy Cao
 local jumpPowerValue = 50
 local JumpFrame = Instance.new("Frame", LeftCol)
-JumpFrame.Size = UDim2.new(1, 0, 0, 22)
-JumpFrame.Position = UDim2.new(0, 0, 0, 50)
+JumpFrame.Size = UDim2.new(1, 0, 0, 20)
+JumpFrame.Position = UDim2.new(0, 0, 0, 48)
 JumpFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", JumpFrame).CornerRadius = UDim.new(0, 4)
 
 local JumpLabel = Instance.new("TextLabel", JumpFrame)
-JumpLabel.Size = UDim2.new(1, -60, 1, 0)
+JumpLabel.Size = UDim2.new(1, -52, 1, 0)
 JumpLabel.Position = UDim2.new(0, 8, 0, 0)
 JumpLabel.BackgroundTransparency = 1
-JumpLabel.Text = "Nhảy Cao: " .. jumpPowerValue
+JumpLabel.Text = "Nhảy: " .. jumpPowerValue
 JumpLabel.Font = Enum.Font.GothamBold
-JumpLabel.TextSize = 9
+JumpLabel.TextSize = 8
 JumpLabel.TextColor3 = Color3.new(1, 1, 1)
 JumpLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-createButton(JumpFrame, "-", UDim2.new(0, 20, 0, 16), UDim2.new(1, -45, 0, 3), function()
+createButton(JumpFrame, "-", UDim2.new(0, 18, 0, 14), UDim2.new(1, -38, 0, 3), function()
     if jumpPowerValue > 50 then
         jumpPowerValue = jumpPowerValue - 10
         if jumpPowerValue < 50 then jumpPowerValue = 50 end
-        JumpLabel.Text = "Nhảy Cao: " .. jumpPowerValue
+        JumpLabel.Text = "Nhảy: " .. jumpPowerValue
     end
 end)
 
-createButton(JumpFrame, "+", UDim2.new(0, 20, 0, 16), UDim2.new(1, -23, 0, 3), function()
+createButton(JumpFrame, "+", UDim2.new(0, 18, 0, 14), UDim2.new(1, -20, 0, 3), function()
     if jumpPowerValue < 500 then
         jumpPowerValue = jumpPowerValue + 10
-        JumpLabel.Text = "Nhảy Cao: " .. jumpPowerValue
+        JumpLabel.Text = "Nhảy: " .. jumpPowerValue
     end
 end)
 
 -- 3. Anti-Fling
 local antiFlingMode = "Tắt"
 local AntiFlingFrame = Instance.new("Frame", LeftCol)
-AntiFlingFrame.Size = UDim2.new(1, 0, 0, 22)
-AntiFlingFrame.Position = UDim2.new(0, 0, 0, 75)
+AntiFlingFrame.Size = UDim2.new(1, 0, 0, 20)
+AntiFlingFrame.Position = UDim2.new(0, 0, 0, 71)
 AntiFlingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", AntiFlingFrame).CornerRadius = UDim.new(0, 4)
 
@@ -296,11 +298,11 @@ AntiFlingLabel.Position = UDim2.new(0, 8, 0, 0)
 AntiFlingLabel.BackgroundTransparency = 1
 AntiFlingLabel.Text = "Anti-Fling"
 AntiFlingLabel.Font = Enum.Font.GothamBold
-AntiFlingLabel.TextSize = 9
+AntiFlingLabel.TextSize = 8
 AntiFlingLabel.TextColor3 = Color3.new(1, 1, 1)
 AntiFlingLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local AntiFlingToggle = createButton(AntiFlingFrame, "Tắt", UDim2.new(0, 52, 0, 16), UDim2.new(1, -55, 0, 3), function()
+local AntiFlingToggle = createButton(AntiFlingFrame, "Tắt", UDim2.new(0, 45, 0, 14), UDim2.new(1, -48, 0, 3), function()
     if antiFlingMode == "Tắt" then
         antiFlingMode = "Bật"
         _G.AntiFlingToggle.Text = "Bật"
@@ -343,28 +345,17 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- 4. Nút Antilag + FPS
-local AntiLagBtn = createButton(LeftCol, "Antilag + FPS: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 100), function()
-    antiLagActive = not antiLagActive
-    if antiLagActive then
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") and not v:IsA("Terrain") then
-                v.Material = Enum.Material.SmoothPlastic
-            elseif v:IsA("Decal") or v:IsA("Texture") then
-                v.Transparency = 1
-            end
-        end
-        settings().Rendering.QualityLevel = 1
-        _G.AntiLagBtn.Text = "Antilag + FPS: ON"
-        _G.AntiLagBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    else
-        _G.AntiLagBtn.Text = "Antilag + FPS: OFF"
-        _G.AntiLagBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+-- 4. Nút Antilag + FPS chạy loadstring 100% của bạn
+local AntiLagBtn = createButton(LeftCol, "Antilag + FPS", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 94), function()
+    local successRun, errRun = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/fixlag100%25"))()
+    end)
+    if not successRun then
+        warn("Lỗi tải mã nguồn Fix Lag: " .. tostring(errRun))
     end
 end)
-_G.AntiLagBtn = AntiLagBtn
 
--- ESP Name
+-- Chức năng vẽ ESP Name
 local function ApplyESP()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= lp and p.Character then
@@ -394,7 +385,7 @@ local function ApplyESP()
 end
 
 -- 5. Nút Esp Name Player
-local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 125), function()
+local EspNameBtn = createButton(LeftCol, "Esp Name Player: OFF", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 117), function()
     espNameActive = not espNameActive
     ApplyESP()
     if espNameActive then
@@ -408,7 +399,7 @@ end)
 _G.EspNameBtn = EspNameBtn
 
 -- 6. Nút TP All (KillAll) từ GitHub
-local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 150), function()
+local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 140), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/TpAll"))()
     end)
@@ -416,7 +407,7 @@ local TpAllBtn = createButton(LeftCol, "TP All (KillAll)", UDim2.new(1, 0, 0, 22
 end)
 
 -- 7. Nút Fly Hack từ GitHub
-local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 175), function()
+local FlyBtn = createButton(LeftCol, "Fly Hack", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 163), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/FlyGui"))()
     end)
@@ -529,7 +520,7 @@ local function EnableBhop()
 end
 
 local BhopBtn
-BhopBtn = createButton(LeftCol, "Bhop Momentum: OFF", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 200), function()
+BhopBtn = createButton(LeftCol, "Bhop Momentum: OFF", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 186), function()
     bhopActive = not bhopActive
     if bhopActive then
         BhopBtn.Text = "Bhop Momentum: ON"
@@ -551,11 +542,28 @@ lp.CharacterAdded:Connect(function()
 end)
 
 -- 9. Dash Hub
-local DashBtn = createButton(LeftCol, "Dash Hub", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 225), function()
+local DashBtn = createButton(LeftCol, "Dash Hub", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 209), function()
     local successRun, errRun = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Dashhub./refs/heads/main/Dashnaoya"))()
     end)
     if not successRun then warn("Lỗi tải mã Dash Hub từ GitHub: " .. tostring(errRun)) end
+end)
+
+-- 10. Nút tải nhanh Lazer Hand từ GitHub (Y: 232)
+local LazerBtn = createButton(LeftCol, "Lazer Hand (Visual)", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 232), function()
+    local successRun, errRun = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BlueAbzzait36xd/Abzzait-hub/refs/heads/main/LazerHand(visual)"))()
+    end)
+    if not successRun then
+        warn("Lỗi tải mã nguồn Lazer Hand: " .. tostring(errRun))
+    end
+end)
+
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function()
+        task.wait(1)
+        ApplyESP()
+    end)
 end)
 
 -- Cột bên phải (Bảng Trống đối xứng)
@@ -591,7 +599,7 @@ EmptyLabel.TextXAlignment = Enum.TextXAlignment.Center
 EmptyLabel.TextYAlignment = Enum.TextYAlignment.Center
 
 -- =========================================================
--- [TAB 2 - TP POS (CẢI TIẾN 10 SLOT SONG SONG)]
+-- [TAB 2 - TP POS]
 -- =========================================================
 local TpTab = TabFrames[2]
 local savedPositions = {}
@@ -633,7 +641,6 @@ local function TeleportToPosition(targetCFrame)
     end
 end
 
--- Vòng lặp khởi tạo 10 Slot xếp song song (mỗi cột 5 slot)
 for slot = 1, 10 do
     local isLeft = (slot <= 5)
     local relativeSlot = isLeft and slot or (slot - 5)
@@ -656,7 +663,6 @@ for slot = 1, 10 do
     SlotLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
     SlotLabel.TextXAlignment = Enum.TextXAlignment.Left
     
-    -- Nút Save Pos
     createButton(SlotFrame, "Save", UDim2.new(0, 40, 0, 24), UDim2.new(1, -90, 0, 5), function()
         local char = lp.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -668,7 +674,6 @@ for slot = 1, 10 do
         end
     end)
     
-    -- Nút Teleport
     local LoadBtn = createButton(SlotFrame, "Go", UDim2.new(0, 40, 0, 24), UDim2.new(1, -45, 0, 5), function()
         if savedPositions[slot] then
             TeleportToPosition(savedPositions[slot])
@@ -684,7 +689,6 @@ for slot = 1, 10 do
     LoadBtn.BackgroundColor3 = Color3.fromRGB(45, 30, 30)
 end
 
--- Thanh chỉnh tốc độ Tween của tab TP Pos
 local AdjustFrame = Instance.new("Frame", TpTab)
 AdjustFrame.Size = UDim2.new(1, -20, 0, 24)
 AdjustFrame.Position = UDim2.new(0, 10, 0, 218)
@@ -716,11 +720,11 @@ createButton(AdjustFrame, "+", UDim2.new(0, 30, 0, 18), UDim2.new(1, -35, 0, 3),
 end)
 
 -- =========================================================
--- [TAB 3 - PLAYER (CẢI TIẾN VỚI DROPDOWN MODE & ADJUSTER)]
+-- [TAB 3 - PLAYER]
 -- =========================================================
 local PlayerTab = TabFrames[3]
 local SelectedPlayer = nil
-local currentTargetMode = "None" -- "None", "Orbit", "Under", "Behind", "Front", "Up"
+local currentTargetMode = "None" 
 local orbitSpeed = 5
 local orbitDistance = 5
 local angle = 0
@@ -782,7 +786,6 @@ end
 createButton(ListFrame, "🔄 Refresh Player List", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 0, 0), RefreshPlayerList)
 RefreshPlayerList()
 
--- 1. Get Tool
 createButton(ControlFrame, "👉 Nhận Target Tool", UDim2.new(1, 0, 0, 18), UDim2.new(0, 0, 0, 18), function()
     local targetTool = Instance.new("Tool")
     targetTool.Name = "Click Target"
@@ -802,7 +805,6 @@ createButton(ControlFrame, "👉 Nhận Target Tool", UDim2.new(1, 0, 0, 18), UD
     targetTool.Parent = lp.Backpack
 end)
 
--- 2. Bộ Chỉnh Orbit Speed (Ngay dưới Get Tool)
 local OrbitSpeedFrame = Instance.new("Frame", ControlFrame)
 OrbitSpeedFrame.Size = UDim2.new(1, 0, 0, 18)
 OrbitSpeedFrame.Position = UDim2.new(0, 0, 0, 38)
@@ -833,7 +835,6 @@ createButton(OrbitSpeedFrame, "+", UDim2.new(0, 20, 0, 14), UDim2.new(1, -21, 0,
     end
 end)
 
--- 3. Bộ Chỉnh Follow Distance (Dưới Orbit Speed)
 local DistFrame = Instance.new("Frame", ControlFrame)
 DistFrame.Size = UDim2.new(1, 0, 0, 18)
 DistFrame.Position = UDim2.new(0, 0, 0, 58)
@@ -864,7 +865,6 @@ createButton(DistFrame, "+", UDim2.new(0, 20, 0, 14), UDim2.new(1, -21, 0, 2), f
     end
 end)
 
--- Vòng lặp cập nhật vị trí bám đuổi của Tab Player
 RunService.Heartbeat:Connect(function()
     if currentTargetMode == "None" or not SelectedPlayer or not SelectedPlayer.Character then return end
     local targetHrp = SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -893,11 +893,37 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- 4. BỘ SELECT MODE (DROPDOWN MENU PHÍA DƯỚI)
-local DropdownBtn
+local OrbitBtn, UnderBtn, BehindBtn, FrontBtn, UpBtn
+
+local function clearPlayerModes()
+    currentTargetMode = "None"
+    OrbitBtn.Text = "Orbit: OFF"
+    OrbitBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    UnderBtn.Text = "Under: OFF"
+    UnderBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    BehindBtn.Text = "Behind: OFF"
+    BehindBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    FrontBtn.Text = "Front: OFF"
+    FrontBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    UpBtn.Text = "Up: OFF"
+    UpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+end
+
+local function setPlayerMode(mode, button)
+    if not SelectedPlayer then return end
+    if currentTargetMode == mode then
+        clearPlayerModes()
+    else
+        clearPlayerModes()
+        currentTargetMode = mode
+        button.Text = mode .. ": ON"
+        button.BackgroundColor3 = Color3.fromRGB(30, 160, 30)
+    end
+end
+
 local DropdownContainer = Instance.new("Frame", ControlFrame)
 DropdownContainer.Size = UDim2.new(1, 0, 0, 110)
-DropdownContainer.Position = UDim2.new(0, 0, 0, 100) -- Đè lên trên các nút phía dưới khi mở rộng
+DropdownContainer.Position = UDim2.new(0, 0, 0, 100) 
 DropdownContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 DropdownContainer.BorderSizePixel = 1
 DropdownContainer.BorderColor3 = Color3.fromRGB(45, 45, 45)
@@ -951,7 +977,12 @@ DropdownBtn = createButton(ControlFrame, "Select Mode: None ▼", UDim2.new(1, 0
 end)
 DropdownBtn.ZIndex = 10
 
--- 5. Nút TP To Target
+OrbitBtn = createButton(DropdownScroll, "Orbit: OFF", UDim2.new(1, -6, 0, 18), UDim2.new(0, 3, 0, 0), function() setPlayerMode("Orbit", OrbitBtn) end)
+UnderBtn = createButton(DropdownScroll, "Under: OFF", UDim2.new(1, -6, 0, 18), UDim2.new(0, 3, 0, 0), function() setPlayerMode("Under", UnderBtn) end)
+BehindBtn = createButton(DropdownScroll, "Behind: OFF", UDim2.new(1, -6, 0, 18), UDim2.new(0, 3, 0, 0), function() setPlayerMode("Behind", BehindBtn) end)
+FrontBtn = createButton(DropdownScroll, "Front: OFF", UDim2.new(1, -6, 0, 18), UDim2.new(0, 3, 0, 0), function() setPlayerMode("Front", FrontBtn) end)
+UpBtn = createButton(DropdownScroll, "Up: OFF", UDim2.new(1, -6, 0, 18), UDim2.new(0, 3, 0, 0), function() setPlayerMode("Up", UpBtn) end)
+
 createButton(ControlFrame, "TP To Target (T)", UDim2.new(1, 0, 0, 18), UDim2.new(0, 0, 0, 100), function()
     if SelectedPlayer and SelectedPlayer.Character then
         local targetHrp = SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -961,7 +992,6 @@ createButton(ControlFrame, "TP To Target (T)", UDim2.new(1, 0, 0, 18), UDim2.new
     end
 end)
 
--- Phím tắt T để dịch chuyển nhanh
 UIS.InputBegan:Connect(function(input, processed)
     if not processed and input.KeyCode == Enum.KeyCode.T then
         if SelectedPlayer and SelectedPlayer.Character then
@@ -973,7 +1003,6 @@ UIS.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- 6. Infinite Zoom
 local function ApplyCameraSettings()
     if infZoomActive then
         lp.CameraMaxZoomDistance = 999999
@@ -986,7 +1015,7 @@ local function ApplyCameraSettings()
     end
 end
 
-local ZoomBtn = createButton(ControlFrame, "Infinite Zoom: OFF", UDim2.new(1, 0, 0, 18), UDim2.new(0, 0, 0, 120), function()
+local ZoomBtn = createButton(ControlFrame, "Infinite Zoom: OFF", UDim2.new(1, 0, 0, 18), UDim2.new(0, 0, 0, 126), function()
     infZoomActive = not infZoomActive
     ApplyCameraSettings()
     if infZoomActive then
@@ -999,10 +1028,9 @@ local ZoomBtn = createButton(ControlFrame, "Infinite Zoom: OFF", UDim2.new(1, 0,
 end)
 _G.ZoomBtn = ZoomBtn
 
--- 7. Chỉnh FOV
 local FOVFrame = Instance.new("Frame", ControlFrame)
 FOVFrame.Size = UDim2.new(1, 0, 0, 22)
-FOVFrame.Position = UDim2.new(0, 0, 0, 140)
+FOVFrame.Position = UDim2.new(0, 0, 0, 148)
 FOVFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Instance.new("UICorner", FOVFrame).CornerRadius = UDim.new(0, 4)
 
@@ -1033,7 +1061,7 @@ createButton(FOVFrame, "+", UDim2.new(0, 30, 0, 18), UDim2.new(1, -35, 0, 3), fu
 end)
 
 -- =========================================================
--- [CẤU HÌNH CÁC TAB KHÁC (TAB 4, 5, 6)]
+-- [CẤU HÌNH CÁC TAB KHÁC]
 -- =========================================================
 for i = 4, 6 do
     local label = Instance.new("TextLabel", TabFrames[i])
@@ -1072,4 +1100,4 @@ task.spawn(function()
     end
 end)
 
-print("🔥 [Abzzait Hub] Bảng nâng cấp 10 Pos song song & Dropdown Player đã kích hoạt thành công!")
+print("🔥 [Abzzait Hub] Khởi chạy trực tiếp hoàn tất!")
